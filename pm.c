@@ -1,6 +1,6 @@
-/************************************
- * Méthode des itérations simultanées
- ************************************/
+/**************************
+ * Méthode de la puissance 
+ **************************/
 
 #include <stdio.h>
 
@@ -22,13 +22,15 @@ int main() {
 	// A^k*v serie calcultion
         for(int k = 0; k < 100; k++) {
 
+		alpha = 0;
+
 		// Compute normalization dividende
                 for (int i = 0; i<3;i++) {
                         if (alpha < q[i])
                                 alpha = q[i];
                 }
 
-		// Compute Sn = A * Sn-1
+		// v = A * q
                 for (int i = 0; i<3;i++) {
                         v[i] = 0.0;
                         for (int j = 0; j<3;j++) {
@@ -37,7 +39,7 @@ int main() {
                         v[i] = v[i] / alpha;
                 }
 
-		// Move v to q
+		// q = v
                 for(int i = 0; i<3; i++) {
                         q[i] = v[i];
                         printf("[%f]",q[i]);
