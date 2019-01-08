@@ -1,3 +1,3 @@
 #! /bin/sh
 
-gcc -g -Wall mis.c -o mis -lm
+gcc -fopenmp -g -Wall mis.c -o mis -lm

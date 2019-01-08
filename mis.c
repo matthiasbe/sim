@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 
 // Size of the A matrix
 #define N 5000
@@ -15,13 +16,23 @@
 
 // Returns the scalar product of u and v
 double scalar_product(double u[N], double v[N]) {
-	double res = 0;
 
-	for ( int i = 0; i<N; i++) {
-		res += u[i]*v[i];
+	double* w = malloc(sizeof(double)*N);
+	double result = 0;
+	
+	int i;
+	#pragma omp parallel for num_threads(4)
+	for (i = 0; i < N; i++) {
+		w[i] = u[i]*v[i];
+	}
+	
+	#pragma omp parallel for reduction (+:result) num_threads(4)
+	for (i = 0; i < N; i++) {
+		result = w[i] + result;
 	}
 
-	return res;
+	free(w);
+	return result;
 }
 
 /* Make the system of column vecotrs of the matrix A orthogonal and orthonormal
@@ -67,6 +78,7 @@ void orthonormalize(double A[M][N]) {
 
 }
 
+// Print the A matrix for debug purpose
 void print_matrix(double A[N][N]) {
 	for (int i = 0; i<N ; i++) {
 		for (int j = 0; j<N; j++) {
@@ -76,13 +88,8 @@ void print_matrix(double A[N][N]) {
 	}
 }
 
-int main() {
-
-	double *A[N];
-
-	// Initialise S0
-        double *q[M];
-
+// Initialize A and q with random values
+void init(double *A[N], double *q[M]) {
 	for (int i = 0; i<N; i++) {
 		A[i] = malloc(sizeof(double) * N);
 		if (i < M) {
@@ -103,7 +110,10 @@ int main() {
 			q[j][i] = random_dbl;
 		}
 	}
+}
 
+// Do the Simultaneous Iterations Methods
+void mis(double *A[N], double *q[M]) {
 	// Temp vector
         double v[M][N];
 
@@ -131,6 +141,16 @@ int main() {
                 }
 		
         }
+}
+
+int main() {
+
+	double *A[N];
+        double *q[M];
+
+	init(A, q);
+
+	mis(A, q);
 }
 
 
