@@ -1,3 +1,3 @@
 #! /bin/sh
 
-gcc -Wall mis.c -o mis -lm
+gcc -g -Wall mis.c -o mis -lm

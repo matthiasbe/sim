@@ -6,9 +6,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define N 3
-#define M 2
+// Size of the A matrix
+#define N 5000
+// Number of eigenvectors to guess
+#define M 5
 
+// Returns the scalar product of u and v
 double scalar_product(double u[N], double v[N]) {
 	double res = 0;
 
@@ -19,29 +22,25 @@ double scalar_product(double u[N], double v[N]) {
 	return res;
 }
 
+/* Make the system of column vecotrs of the matrix A orthogonal and orthonormal
+ * using Gram-Schmidt algorithm */
 void orthonormalize(double A[M][N]) {
 	
 	double temp[N];
 	double norm, temp_norm;
 
 	for(int i = 0; i<M; i++) {
-//		printf("Traitement du vecteur numéro %d\n", i);
 		for (int j = 0; j<N; j++) {
 			temp[j] = A[i][j];
 		}
 
 		for (int k = 0; k<i; k++) {
-
-//			printf("calcul de la project sur l'axe %d\n", k);
-
 			norm = scalar_product(A[i], A[k]);
-			printf("(u,v) = %f\n", norm);
 			norm /= scalar_product(A[k], A[k]);
 
-			printf("(u,v) / (u,u) = %f\n", norm);
 
 			for (int j = 0; j<N; j++) {
-				temp[j] -= norm * A[i][j];
+				temp[j] -= norm * A[k][j];
 			}
 		}
 		for (int j = 0; j<N; j++) {
@@ -50,9 +49,10 @@ void orthonormalize(double A[M][N]) {
 	}
 
 	for(int i = 0; i<M; i++) {
+
 		temp_norm = 0;
 		for ( int k = 0; k<N; k++) {
-			temp_norm += temp[k] * temp[k];
+			temp_norm += A[i][k] * A[i][k];
 		}
 
 		temp_norm = sqrt(temp_norm);
@@ -65,19 +65,43 @@ void orthonormalize(double A[M][N]) {
 
 }
 
+void print_matrix(double A[N][N]) {
+	for (int i = 0; i<N ; i++) {
+		for (int j = 0; j<N; j++) {
+			printf("[%f]",A[i][j]);
+		}
+		printf("\n");
+	}
+}
+
 int main() {
 
-        double A[N][N] = {
-                {1,2,3},
-                {2,5,3},
-                {3,3,15}
-        };
+	double *A[N];
 
 	// Initialise S0
-        double q[M][N] = {
-		{0,3,1},
-		{5,-2,3}
-	};
+        double *q[M];
+
+
+	for (int i = 0; i<N; i++) {
+		A[i] = malloc(sizeof(double) * N);
+		if (i < M) {
+			q[i] = malloc(sizeof(double) * N);
+		}
+	}
+	for (int i = 0; i<N; i++) {
+		double random_dbl = (double) rand();
+		for (int j = 1; j<i; j++) {
+			A[i][j] = random_dbl;
+			A[j][i] = random_dbl;
+			random_dbl = (double) rand();
+		}
+		A[i][i] = random_dbl;
+
+		for (int j = 0; j<M; j++) {
+			random_dbl = (double) rand();
+			q[j][i] = random_dbl;
+		}
+	}
 
 	// Temp vector
         double v[M][N];
@@ -95,16 +119,7 @@ int main() {
 				v[k][i] = v[k][i];
 			}
 		}
-		// q = v
-                for(int i = 0; i<M; i++) {
-			for(int j = 0; j<N; j++) {
-				printf("[%f]",v[i][j]);
-			}
-			printf("\n");
-                }
-                printf("\n");
-
-		printf("Gram-Schmidt ...\n");
+		
 		orthonormalize(v);
 
 		// q = v
@@ -118,6 +133,15 @@ int main() {
                 printf("\n");
 		
         }
+	
+	// q = v
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<N; j++) {
+			printf("[%f]",q[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 
 }
 
