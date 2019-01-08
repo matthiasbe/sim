@@ -12,7 +12,7 @@
 // Number of eigenvectors to guess
 #define M 50
 // Number of iterations
-#define ITER 50
+#define ITER 5
 
 // Returns the scalar product of u and v
 double scalar_product(double u[N], double v[N]) {
@@ -21,12 +21,12 @@ double scalar_product(double u[N], double v[N]) {
 	double result = 0;
 	
 	int i;
-	#pragma omp parallel for num_threads(4)
+	//#pragma omp parallel for
 	for (i = 0; i < N; i++) {
 		w[i] = u[i]*v[i];
 	}
 	
-	#pragma omp parallel for reduction (+:result) num_threads(4)
+	//#pragma omp parallel for reduction (+:result)
 	for (i = 0; i < N; i++) {
 		result = w[i] + result;
 	}
@@ -116,24 +116,29 @@ void init(double *A[N], double *q[M]) {
 void mis(double *A[N], double *q[M]) {
 	// Temp vector
         double v[M][N];
+	double result;
 
 	// A^k*v serie calculation
         for(int n = 0; n < ITER; n++) {
 
 		// v = A * Q
+		#pragma omp parallel for
 		for (int k = 0; k<M; k++) {
+			//#pragma omp parallel for
 			for (int i = 0; i<N;i++) {
-				v[k][i] = 0.0;
-				for (int j = 0; j<3;j++) {
-					v[k][i] += q[k][j]*A[i][j];
+				result = 0.0;
+				//#pragma omp parallel for reduction (+:result)
+				for (int j = 0; j<N;j++) {
+					result += q[k][j]*A[i][j];
 				}
-				v[k][i] = v[k][i];
+				v[k][i] = result;
 			}
 		}
 		
 		orthonormalize(v);
 
 		// q = v
+		#pragma omp parallel for
                 for(int i = 0; i<M; i++) {
 			for(int j = 0; j<N; j++) {
 				q[i][j] = v[i][j];
