@@ -7,15 +7,8 @@
 #include <math.h>
 #include <omp.h>
 
-// Size of the A matrix
-#define N 5000
-// Number of eigenvectors to guess
-#define M 50
-// Number of iterations
-#define ITER 5
-
 // Returns the scalar product of u and v
-double scalar_product(double u[N], double v[N]) {
+double scalar_product(int N, int M, double u[N], double v[N]) {
 
 	double* w = malloc(sizeof(double)*N);
 	double result = 0;
@@ -37,7 +30,7 @@ double scalar_product(double u[N], double v[N]) {
 
 /* Make the system of column vecotrs of the matrix A orthogonal and orthonormal
  * using Gram-Schmidt algorithm */
-void orthonormalize(double A[M][N]) {
+void orthonormalize(int N, int M, double A[M][N]) {
 	
 	double temp[N];
 	double norm, temp_norm;
@@ -48,8 +41,8 @@ void orthonormalize(double A[M][N]) {
 		}
 
 		for (int k = 0; k<i; k++) {
-			norm = scalar_product(A[i], A[k]);
-			norm /= scalar_product(A[k], A[k]);
+			norm = scalar_product(N, M, A[i], A[k]);
+			norm /= scalar_product(N, M, A[k], A[k]);
 
 
 			for (int j = 0; j<N; j++) {
@@ -79,7 +72,7 @@ void orthonormalize(double A[M][N]) {
 }
 
 // Print the A matrix for debug purpose
-void print_matrix(double A[N][N]) {
+void print_matrix(int N, double A[N][N]) {
 	for (int i = 0; i<N ; i++) {
 		for (int j = 0; j<N; j++) {
 			printf("[%f]",A[i][j]);
@@ -89,7 +82,7 @@ void print_matrix(double A[N][N]) {
 }
 
 // Initialize A and q with random values
-void init(double *A[N], double *q[M]) {
+void init(int N, int M, double *A[N], double *q[M]) {
 	for (int i = 0; i<N; i++) {
 		A[i] = malloc(sizeof(double) * N);
 		if (i < M) {
@@ -113,13 +106,13 @@ void init(double *A[N], double *q[M]) {
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(double *A[N], double *q[M]) {
+void mis(int N, int M, double *A[N], double *q[M], int iter) {
 	// Temp vector
         double v[M][N];
 	double result;
 
 	// A^k*v serie calculation
-        for(int n = 0; n < ITER; n++) {
+        for(int n = 0; n < iter; n++) {
 
 		// v = A * Q
 		#pragma omp parallel for
@@ -135,7 +128,7 @@ void mis(double *A[N], double *q[M]) {
 			}
 		}
 		
-		orthonormalize(v);
+		orthonormalize(N, M, v);
 
 		// q = v
 		#pragma omp parallel for
@@ -148,14 +141,26 @@ void mis(double *A[N], double *q[M]) {
         }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+
+	if (argc != 4) {
+		printf("Usage : ./mis N M <nb-iterations>\n");
+		exit(-1);
+	}
+
+	// Size of the A matrix
+	int N = atoi(argv[1]);
+	// Number of eigenvectors to guess
+	int M = atoi(argv[2]);
+	// Number of iterations
+	int iter = atoi(argv[3]);
 
 	double *A[N];
         double *q[M];
 
-	init(A, q);
+	init(N, M, A, q);
 
-	mis(A, q);
+	mis(N, M, A, q, iter);
 }
 
 
