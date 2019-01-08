@@ -9,7 +9,9 @@
 // Size of the A matrix
 #define N 5000
 // Number of eigenvectors to guess
-#define M 5
+#define M 50
+// Number of iterations
+#define ITER 50
 
 // Returns the scalar product of u and v
 double scalar_product(double u[N], double v[N]) {
@@ -81,7 +83,6 @@ int main() {
 	// Initialise S0
         double *q[M];
 
-
 	for (int i = 0; i<N; i++) {
 		A[i] = malloc(sizeof(double) * N);
 		if (i < M) {
@@ -107,7 +108,7 @@ int main() {
         double v[M][N];
 
 	// A^k*v serie calculation
-        for(int n = 0; n < 5; n++) {
+        for(int n = 0; n < ITER; n++) {
 
 		// v = A * Q
 		for (int k = 0; k<M; k++) {
@@ -126,23 +127,10 @@ int main() {
                 for(int i = 0; i<M; i++) {
 			for(int j = 0; j<N; j++) {
 				q[i][j] = v[i][j];
-				printf("[%f]",q[i][j]);
 			}
-			printf("\n");
                 }
-                printf("\n");
 		
         }
-	
-	// q = v
-	for(int i = 0; i<M; i++) {
-		for(int j = 0; j<N; j++) {
-			printf("[%f]",q[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-
 }
 
 
