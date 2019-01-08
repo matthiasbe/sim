@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
+#include <lapacke.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -141,10 +142,39 @@ void mis(int N, int M, double *A[N], double *q[M], int iter) {
         }
 }
 
+
+void check_egeinvectors(int N, int M, double *A[N], double *q[N]) {
+	double D[N];
+	double E[N-1];
+	double TAU[N-1];
+	double WORK[1];
+	int LWORK = 1;
+	int INFO;
+	dsytrd_("U", &N, (double *)A, &N, D, E, (double *)TAU, WORK, &LWORK, &INFO);
+
+	double precision = 1;
+	int NSPLIT;
+	double *eigenvalues = malloc(N*sizeof(double));
+       	int IBLOCK[N], ISPLIT[N];
+	int P = N-M;
+	dstebz_("I", "E", &N, 0, 0, &P, &N, &precision, D, E, &M, &NSPLIT, eigenvalues, IBLOCK, ISPLIT, WORK, &LWORK, &INFO);
+
+	if (INFO != 0) {
+		printf("Error finding EV : %d\n", INFO);
+	}
+	
+	for ( int i; i<N ; i++) {
+		printf("[%f]", eigenvalues[i]);
+	}
+	printf("\n");
+}
+
 int main(int argc, char* argv[]) {
 
 	if (argc != 4) {
 		printf("Usage : ./mis N M <nb-iterations>\n");
+		printf("N : size of the matrix\n");
+		printf("M : number of eigenvectors to guess\n");
 		exit(-1);
 	}
 
@@ -161,6 +191,8 @@ int main(int argc, char* argv[]) {
 	init(N, M, A, q);
 
 	mis(N, M, A, q, iter);
+
+	check_egeinvectors(N, M, A, q);
 }
 
 
