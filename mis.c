@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
-#include <lapacke.h>
+// #include <lapacke.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -83,13 +83,7 @@ void print_matrix(int N, double A[N][N]) {
 }
 
 // Initialize A and q with random values
-void init(int N, int M, double *A[N], double *q[M]) {
-	for (int i = 0; i<N; i++) {
-		A[i] = malloc(sizeof(double) * N);
-		if (i < M) {
-			q[i] = malloc(sizeof(double) * N);
-		}
-	}
+void init(int N, int M, double (*A)[N], double (*q)[N]) {
 	for (int i = 0; i<N; i++) {
 		double random_dbl = (double) rand();
 		for (int j = 1; j<i; j++) {
@@ -107,7 +101,7 @@ void init(int N, int M, double *A[N], double *q[M]) {
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double *A[N], double *q[M], int iter) {
+void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
 	// Temp vector
         double v[M][N];
 	double result;
@@ -143,31 +137,31 @@ void mis(int N, int M, double *A[N], double *q[M], int iter) {
 }
 
 
-void check_egeinvectors(int N, int M, double *A[N], double *q[N]) {
-	double D[N];
-	double E[N-1];
-	double TAU[N-1];
-	double WORK[1];
-	int LWORK = 1;
-	int INFO;
-	dsytrd_("U", &N, (double *)A, &N, D, E, (double *)TAU, WORK, &LWORK, &INFO);
+// void check_egeinvectors(int N, int M, double *A[N], double *q[N]) {
+// 	double D[N];
+// 	double E[N-1];
+// 	double TAU[N-1];
+// 	double WORK[1];
+// 	int LWORK = 1;
+// 	int INFO;
+// 	dsytrd_("U", &N, (double *)A, &N, D, E, (double *)TAU, WORK, &LWORK, &INFO);
 
-	double precision = 1;
-	int NSPLIT;
-	double *eigenvalues = malloc(N*sizeof(double));
-       	int IBLOCK[N], ISPLIT[N];
-	int P = N-M;
-	dstebz_("I", "E", &N, 0, 0, &P, &N, &precision, D, E, &M, &NSPLIT, eigenvalues, IBLOCK, ISPLIT, WORK, &LWORK, &INFO);
+// 	double precision = 1;
+// 	int NSPLIT;
+// 	double *eigenvalues = malloc(N*sizeof(double));
+//        	int IBLOCK[N], ISPLIT[N];
+// 	int P = N-M;
+// 	dstebz_("I", "E", &N, 0, 0, &P, &N, &precision, D, E, &M, &NSPLIT, eigenvalues, IBLOCK, ISPLIT, WORK, &LWORK, &INFO);
 
-	if (INFO != 0) {
-		printf("Error finding EV : %d\n", INFO);
-	}
+// 	if (INFO != 0) {
+// 		printf("Error finding EV : %d\n", INFO);
+// 	}
 	
-	for ( int i; i<N ; i++) {
-		printf("[%f]", eigenvalues[i]);
-	}
-	printf("\n");
-}
+// 	for ( int i; i<N ; i++) {
+// 		printf("[%f]", eigenvalues[i]);
+// 	}
+// 	printf("\n");
+// }
 
 int main(int argc, char* argv[]) {
 
@@ -185,14 +179,16 @@ int main(int argc, char* argv[]) {
 	// Number of iterations
 	int iter = atoi(argv[3]);
 
-	double *A[N];
-        double *q[M];
+	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+    double (*q)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 
 	init(N, M, A, q);
 
 	mis(N, M, A, q, iter);
 
-	check_egeinvectors(N, M, A, q);
+	free(A);
+	free(q);
+	// check_egeinvectors(N, M, A, q);
 }
 
 
