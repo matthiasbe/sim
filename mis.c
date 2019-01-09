@@ -83,13 +83,7 @@ void print_matrix(int N, double A[N][N]) {
 }
 
 // Initialize A and q with random values
-void init(int N, int M, double *A[N], double *q[M]) {
-	for (int i = 0; i<N; i++) {
-		A[i] = malloc(sizeof(double) * N);
-		if (i < M) {
-			q[i] = malloc(sizeof(double) * N);
-		}
-	}
+void init(int N, int M, double (*A)[N], double (*q)[N]) {
 	for (int i = 0; i<N; i++) {
 		double random_dbl = (double) rand();
 		for (int j = 1; j<i; j++) {
@@ -107,7 +101,7 @@ void init(int N, int M, double *A[N], double *q[M]) {
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double *A[N], double *q[M], int iter) {
+void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
 	// Temp vector
         double v[M][N];
 	double result;
@@ -158,8 +152,8 @@ int main(int argc, char* argv[]) {
 	// Number of iterations
 	int iter = atoi(argv[3]);
 
-	double *A[N];
-        double *q[M];
+	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+    double (*q)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 
 	init(N, M, A, q);
 
@@ -173,6 +167,9 @@ int main(int argc, char* argv[]) {
 	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
 		         (double) (end.tv_sec - start.tv_sec);
 	printf("duration (s) : %f\n", duration);
+
+	free(A);
+	free(q);
 }
 
 
