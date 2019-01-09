@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
+#include <sys/time.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -162,7 +163,16 @@ int main(int argc, char* argv[]) {
 
 	init(N, M, A, q);
 
+	struct timeval start;
+	gettimeofday(&start, NULL);
+
 	mis(N, M, A, q, iter);
+
+	struct timeval end;
+	gettimeofday(&end, NULL);
+	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
+		         (double) (end.tv_sec - start.tv_sec);
+	printf("duration (s) : %f\n", duration);
 }
 
 
