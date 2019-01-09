@@ -7,6 +7,7 @@
 #include <math.h>
 #include <omp.h>
 #include <sys/time.h>
+#include <gsl/gsl_eigen.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -27,6 +28,44 @@ double scalar_product(int N, int M, double u[N], double v[N]) {
 
 	free(w);
 	return result;
+}
+// C = AB
+void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P]){
+	double result;
+	#pragma omp parallel for
+	for (int k = 0; k<M; k++) {
+		for (int i = 0; i<P;i++) {
+			result = 0.0;
+			#pragma omp parallel for reduction (+:result)
+			for (int j = 0; j<N;j++) {
+				result += A[k][j] * B[i][j];
+			}
+			C[k][i] = result;
+		}
+	}
+}
+
+void transpose(int M, int N, double A[M][N], double T[N][M]){
+	#pragma omp parallel for
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			T[i][j] = A[j][i];
+		}
+	}
+}
+
+/* Computes B=q(^H)Aq
+*/
+void projection(int N, int M, double A[N][N], double q[M][N], double B[M][M]){
+	double intermediate[N][M];
+	double transposed[M][N];
+	matrix_product(N, N, M, A, q, intermediate);
+
+	transpose(M, N, q, transposed);
+
+	matrix_product(M, N, M, transposed, intermediate, B);
 }
 
 /* Make the system of column vecotrs of the matrix A orthogonal and orthonormal
@@ -101,39 +140,41 @@ void init(int N, int M, double (*A)[N], double (*q)[N]) {
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
+void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 	// Temp vector
-        double v[M][N];
-	double result;
+    double Z[M][N];
+    double B[M][M];
+    double H[M][M];
 
 	// A^k*v serie calculation
-        for(int n = 0; n < iter; n++) {
-
+    for(int n = 0; n < iter; n++) {
 		// v = A * Q
-		#pragma omp parallel for
-		for (int k = 0; k<M; k++) {
-			//#pragma omp parallel for
-			for (int i = 0; i<N;i++) {
-				result = 0.0;
-				//#pragma omp parallel for reduction (+:result)
-				for (int j = 0; j<N;j++) {
-					result += q[k][j]*A[i][j];
-				}
-				v[k][i] = result;
-			}
-		}
+        matrix_product(N, N, M, A, q, Z);
 		
-		orthonormalize(N, M, v);
+		orthonormalize(N, M, Z);
+
+		projection(N, M, A, q, B);
+
+		//Schur factorization
+		gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
+		gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
+		gsl_vector* eigenvalues = gsl_vector_alloc(M);
+		gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
+
+		gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
+
+		gsl_vector_free(eigenvalues);
+		gsl_matrix_free(gsl_Y);
+		// gsl_eigen_nonsymm_free(ws);
 
 		// q = v
 		#pragma omp parallel for
-                for(int i = 0; i<M; i++) {
+        for(int i = 0; i<M; i++) {
 			for(int j = 0; j<N; j++) {
-				q[i][j] = v[i][j];
+				q[i][j] = Z[i][j];
 			}
-                }
-		
         }
+    }
 }
 
 int main(int argc, char* argv[]) {
