@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
-// #include <lapacke.h>
+#include <sys/time.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -136,33 +136,6 @@ void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
         }
 }
 
-
-// void check_egeinvectors(int N, int M, double *A[N], double *q[N]) {
-// 	double D[N];
-// 	double E[N-1];
-// 	double TAU[N-1];
-// 	double WORK[1];
-// 	int LWORK = 1;
-// 	int INFO;
-// 	dsytrd_("U", &N, (double *)A, &N, D, E, (double *)TAU, WORK, &LWORK, &INFO);
-
-// 	double precision = 1;
-// 	int NSPLIT;
-// 	double *eigenvalues = malloc(N*sizeof(double));
-//        	int IBLOCK[N], ISPLIT[N];
-// 	int P = N-M;
-// 	dstebz_("I", "E", &N, 0, 0, &P, &N, &precision, D, E, &M, &NSPLIT, eigenvalues, IBLOCK, ISPLIT, WORK, &LWORK, &INFO);
-
-// 	if (INFO != 0) {
-// 		printf("Error finding EV : %d\n", INFO);
-// 	}
-	
-// 	for ( int i; i<N ; i++) {
-// 		printf("[%f]", eigenvalues[i]);
-// 	}
-// 	printf("\n");
-// }
-
 int main(int argc, char* argv[]) {
 
 	if (argc != 4) {
@@ -184,11 +157,19 @@ int main(int argc, char* argv[]) {
 
 	init(N, M, A, q);
 
+	struct timeval start;
+	gettimeofday(&start, NULL);
+
 	mis(N, M, A, q, iter);
+
+	struct timeval end;
+	gettimeofday(&end, NULL);
+	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
+		         (double) (end.tv_sec - start.tv_sec);
+	printf("duration (s) : %f\n", duration);
 
 	free(A);
 	free(q);
-	// check_egeinvectors(N, M, A, q);
 }
 
 
