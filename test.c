@@ -2,6 +2,15 @@
 #include <stdio.h>
 #include "mis.h"
 
+void init_q(int N, int M, double q[M][N]){
+	for (int i = 0; i < M; ++i)
+	{
+		for (int j = 0; j<N; j++) {
+			q[i][j] = (double) rand();
+		}
+	}
+	
+}
 
 void test3x3() {
 	double A[3][3] = {
@@ -19,6 +28,7 @@ void test3x3() {
 //	};
 
 	double computed_evec[3][2];
+	init_q(3, 2, computed_evec);
 
 	mis(3, 2, A, computed_evec, 5);
 

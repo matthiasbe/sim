@@ -158,14 +158,14 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 		//Schur factorization
 		gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
 		gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
-		gsl_vector* eigenvalues = gsl_vector_alloc(M);
+		gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
 		gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
 
 		gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
 
-		gsl_vector_free(eigenvalues);
+		gsl_vector_complex_free(eigenvalues);
 		gsl_matrix_free(gsl_Y);
-		// gsl_eigen_nonsymm_free(ws);
+		gsl_eigen_nonsymm_free(ws);
 
 		// q = v
 		#pragma omp parallel for
@@ -177,40 +177,40 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     }
 }
 
-int main(int argc, char* argv[]) {
+// int main(int argc, char* argv[]) {
 
-	if (argc != 4) {
-		printf("Usage : ./mis N M <nb-iterations>\n");
-		printf("N : size of the matrix\n");
-		printf("M : number of eigenvectors to guess\n");
-		exit(-1);
-	}
+// 	if (argc != 4) {
+// 		printf("Usage : ./mis N M <nb-iterations>\n");
+// 		printf("N : size of the matrix\n");
+// 		printf("M : number of eigenvectors to guess\n");
+// 		exit(-1);
+// 	}
 
-	// Size of the A matrix
-	int N = atoi(argv[1]);
-	// Number of eigenvectors to guess
-	int M = atoi(argv[2]);
-	// Number of iterations
-	int iter = atoi(argv[3]);
+// 	// Size of the A matrix
+// 	int N = atoi(argv[1]);
+// 	// Number of eigenvectors to guess
+// 	int M = atoi(argv[2]);
+// 	// Number of iterations
+// 	int iter = atoi(argv[3]);
 
-	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
-    double (*q)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+// 	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+//     double (*q)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 
-	init(N, M, A, q);
+// 	init(N, M, A, q);
 
-	struct timeval start;
-	gettimeofday(&start, NULL);
+// 	struct timeval start;
+// 	gettimeofday(&start, NULL);
 
-	mis(N, M, A, q, iter);
+// 	mis(N, M, A, q, iter);
 
-	struct timeval end;
-	gettimeofday(&end, NULL);
-	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
-		         (double) (end.tv_sec - start.tv_sec);
-	printf("duration (s) : %f\n", duration);
+// 	struct timeval end;
+// 	gettimeofday(&end, NULL);
+// 	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
+// 		         (double) (end.tv_sec - start.tv_sec);
+// 	printf("duration (s) : %f\n", duration);
 
-	free(A);
-	free(q);
-}
+// 	free(A);
+// 	free(q);
+// }
 
 
