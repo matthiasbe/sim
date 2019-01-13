@@ -149,59 +149,37 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
 		// v = A * Q
-<<<<<<< HEAD
-		//#pragma omp parallel for
-		for (int k = 0; k<M; k++) {
-			//#pragma omp parallel for
-			for (int i = 0; i<N;i++) {
-				result = 0.0;
-				//#pragma omp parallel for reduction (+:result)
-				for (int j = 0; j<N;j++) {
-					result += q[k][j]*A[i][j];
-				}
-				v[k][i] = result;
-			}
-		}
-=======
         matrix_product(N, N, M, A, q, Z);
->>>>>>> 9dfd7c923e250ad60fe7110cf9d13ccb610754b0
-		
-		orthonormalize(N, M, Z);
+	
+	orthonormalize(N, M, Z);
 
-		projection(N, M, A, Z, B);
+	projection(N, M, A, Z, B);
 
-		//Schur factorization
-		gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
-		gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
-		gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
-		gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
+	//Schur factorization
+	gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
+	gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
+	gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
+	gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
 
-		gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
+	gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
 
 
-		matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
+	matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
 
-		gsl_vector_complex_free(eigenvalues);
-		gsl_matrix_free(gsl_Y);
-		gsl_eigen_nonsymm_free(ws);
+	gsl_vector_complex_free(eigenvalues);
+	gsl_matrix_free(gsl_Y);
+	gsl_eigen_nonsymm_free(ws);
 
-		// q = v
-<<<<<<< HEAD
-		//#pragma omp parallel for
-                for(int i = 0; i<M; i++) {
-=======
-		#pragma omp parallel for
-        for(int i = 0; i<M; i++) {
->>>>>>> 9dfd7c923e250ad60fe7110cf9d13ccb610754b0
-			for(int j = 0; j<N; j++) {
-				q[i][j] = Z[i][j];
-			}
-        }
+	// q = v
+	#pragma omp parallel for
+	for(int i = 0; i<M; i++) {
+		for(int j = 0; j<N; j++) {
+			q[i][j] = Z[i][j];
+		}
+	}
     }
 }
 
-<<<<<<< HEAD
-=======
 // int main(int argc, char* argv[]) {
 
 // 	if (argc != 4) {
@@ -237,6 +215,5 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 // 	free(A);
 // 	free(q);
 // }
->>>>>>> 9dfd7c923e250ad60fe7110cf9d13ccb610754b0
 
 
