@@ -58,12 +58,12 @@ void transpose(int M, int N, double A[M][N], double T[N][M]){
 
 /* Computes B=q(^H)Aq
 */
-void projection(int N, int M, double A[N][N], double q[M][N], double B[M][M]){
+void projection(int N, int M, double A[N][N], double Z[N][M], double B[M][M]){
 	double intermediate[N][M];
 	double transposed[M][N];
-	matrix_product(N, N, M, A, q, intermediate);
+	matrix_product(N, N, M, A, Z, intermediate);
 
-	transpose(M, N, q, transposed);
+	transpose(N, M, Z, transposed);
 
 	matrix_product(M, N, M, transposed, intermediate, B);
 }
@@ -142,7 +142,7 @@ void init(int N, int M, double (*A)[N], double (*q)[N]) {
 // Do the Simultaneous Iterations Methods
 void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 	// Temp vector
-    double Z[M][N];
+    double Z[N][M];
     double B[M][M];
     double H[M][M];
 
@@ -153,7 +153,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 		
 		orthonormalize(N, M, Z);
 
-		projection(N, M, A, q, B);
+		projection(N, M, A, Z, B);
 
 		//Schur factorization
 		gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
@@ -162,6 +162,9 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 		gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
 
 		gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
+
+
+		matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
 
 		gsl_vector_complex_free(eigenvalues);
 		gsl_matrix_free(gsl_Y);
