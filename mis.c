@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
-#include <sys/time.h>
 
 // Returns the scalar product of u and v
 double scalar_product(int N, int M, double u[N], double v[N]) {
@@ -83,7 +82,7 @@ void print_matrix(int N, double A[N][N]) {
 }
 
 // Initialize A and q with random values
-void init(int N, int M, double (*A)[N], double (*q)[N]) {
+void init(int N, int M, double A[N][N], double q[N][M]) {
 	for (int i = 0; i<N; i++) {
 		double random_dbl = (double) rand();
 		for (int j = 1; j<i; j++) {
@@ -101,7 +100,7 @@ void init(int N, int M, double (*A)[N], double (*q)[N]) {
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
+void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 	// Temp vector
         double v[M][N];
 	double result;
@@ -110,7 +109,7 @@ void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
         for(int n = 0; n < iter; n++) {
 
 		// v = A * Q
-		#pragma omp parallel for
+		//#pragma omp parallel for
 		for (int k = 0; k<M; k++) {
 			//#pragma omp parallel for
 			for (int i = 0; i<N;i++) {
@@ -126,7 +125,7 @@ void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
 		orthonormalize(N, M, v);
 
 		// q = v
-		#pragma omp parallel for
+		//#pragma omp parallel for
                 for(int i = 0; i<M; i++) {
 			for(int j = 0; j<N; j++) {
 				q[i][j] = v[i][j];
@@ -136,40 +135,5 @@ void mis(int N, int M, double (*A)[N], double (*q)[M], int iter) {
         }
 }
 
-int main(int argc, char* argv[]) {
-
-	if (argc != 4) {
-		printf("Usage : ./mis N M <nb-iterations>\n");
-		printf("N : size of the matrix\n");
-		printf("M : number of eigenvectors to guess\n");
-		exit(-1);
-	}
-
-	// Size of the A matrix
-	int N = atoi(argv[1]);
-	// Number of eigenvectors to guess
-	int M = atoi(argv[2]);
-	// Number of iterations
-	int iter = atoi(argv[3]);
-
-	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
-    double (*q)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
-
-	init(N, M, A, q);
-
-	struct timeval start;
-	gettimeofday(&start, NULL);
-
-	mis(N, M, A, q, iter);
-
-	struct timeval end;
-	gettimeofday(&end, NULL);
-	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
-		         (double) (end.tv_sec - start.tv_sec);
-	printf("duration (s) : %f\n", duration);
-
-	free(A);
-	free(q);
-}
 
 
