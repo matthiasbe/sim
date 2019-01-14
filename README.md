@@ -1,3 +1,5 @@
+## A faire
+
 Parametres :
 * La matrice (un fichier ou à saisir)
 * Nombre de valeurs propres
@@ -9,3 +11,17 @@ Utiliser matrice
 
 * Faire un README
 * Faire un makefile
+
+
+## Compile project
+
+`mkdir build`
+`cd build`
+`cmake ..`
+
+## Clean generated files
+
+`rm -r build`
+
+
+

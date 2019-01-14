@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "mis.h"
-#include "read_file.h"
+#include "../src/mis.h"
+#include "../src/read_file.h"
 
 void init_q(int N, int M, double q[M][N]){
 	for (int i = 0; i < M; ++i)
