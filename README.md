@@ -18,6 +18,7 @@ Utiliser matrice
 `mkdir build`
 `cd build`
 `cmake ..`
+`make`
 
 ## Clean generated files
 

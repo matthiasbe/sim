@@ -12,7 +12,7 @@ void read_matrix(char *filename, int size[2], double **A) {
 	FILE *fstream = fopen(filename,"r");
 	if(fstream == NULL)
 	{
-		printf("\n file opening failed ");
+		printf("file opening failed\n");
 		exit(-1);
 	}
 	while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL)
