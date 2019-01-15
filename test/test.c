@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 #include "../src/mis.h"
 #include "../src/read_file.h"
@@ -38,7 +39,6 @@ void test3x3() {
 
 	mis(3, 3, (double (*)[]) A, computed_evec, 50);
 
-
 	for (int i = 0; i<3; i++) {
 
 		for ( int j = 0; j<3; j++) {
@@ -48,8 +48,43 @@ void test3x3() {
 	}
 }
 
+void test_gram_schmidt(char *matrix_filename) {
+	printf("Test orthonormalization\n");
+	int size[2];
+	double *mat;
+	read_matrix(matrix_filename, size, &mat);
+	double (*A)[size[1]] = (double (*) []) mat;
+
+	orthonormalize(size[0], size[1], A);
+
+	for (int i = 0; i<3; i++) {
+
+		for ( int j = 0; j<3; j++) {
+			printf("[%f]", A[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n");
+
+	for (int i = 0; i<3; i++) {
+		double tmp2 = 0;
+		double tmp = 0;
+		for ( int j = 0; j<3; j++) {
+			tmp += pow(A[j][i], 2);
+			tmp += A[j][i]*A[j][(i + 1)%3];
+		}
+		if ((float) tmp != 1.0)
+			printf("Expected 1 got : %f\n", tmp, 30);
+		if (tmp2 != 0.0)
+			printf("Expected 0 got : %f\n", tmp2, 30);
+	}
+}
+
 int main() {
-	test3x3();
+	//test3x3();
+	test_gram_schmidt("../test/matrices/simple3x3");
+	test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }
 
