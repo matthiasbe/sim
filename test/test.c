@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "../src/mis.h"
 #include "../src/read_file.h"
+#include <limits.h>
 
 void init_q(int N, int M, double q[M][N]){
 	for (int i = 0; i < M; ++i)
@@ -57,27 +58,26 @@ void test_gram_schmidt(char *matrix_filename) {
 
 	orthonormalize(size[0], size[1], A);
 
-	for (int i = 0; i<3; i++) {
+	for (int i = 0; i<size[0]; i++) {
 
-		for ( int j = 0; j<3; j++) {
+		for ( int j = 0; j<size[1]; j++) {
 			printf("[%f]", A[i][j]);
 		}
 		printf("\n");
 	}
 
 	printf("\n");
-
 	for (int i = 0; i<3; i++) {
 		double tmp2 = 0;
 		double tmp = 0;
 		for ( int j = 0; j<3; j++) {
 			tmp += pow(A[j][i], 2);
-			tmp += A[j][i]*A[j][(i + 1)%3];
+			tmp2 += A[j][i]*A[j][(i + 1)%3];
 		}
 		if ((float) tmp != 1.0)
-			printf("Expected 1 got : %f\n", tmp, 30);
-		if (tmp2 != 0.0)
-			printf("Expected 0 got : %f\n", tmp2, 30);
+			printf("Wrong normalization! Expected 1 got : %lf\n", tmp);
+		if (abs(tmp2) > 1e-14)
+			printf("Wrong orthogonality! Expected 0 got : %lf\n", tmp2);
 	}
 }
 
