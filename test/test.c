@@ -47,6 +47,33 @@ void test3x3() {
 		}
 		printf("\n");
 	}
+
+	free(mat);
+}
+
+void test_eigenvector(char *matrix_filename){
+	printf("Test eigenvector computation\n");
+	int size[2];
+	double *mat;
+	read_matrix(matrix_filename, size, &mat);
+	double (*A)[size[1]] = (double (*) [size[1]]) mat;
+	double (*q)[2] = (double (*)[2]) malloc(sizeof(double)*2*size[1]);
+	init_q(size[1], 2, q);
+
+	mis(size[1], 2, A, q, 1000);
+	for (int k = 0; k < 2; ++k)
+	{
+		double* vector = (double *) q;
+		double *result = (double*) malloc(sizeof(double) * size[1]);
+		matrix_product(size[1], size[1], 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+		double diff = scalar_product(size[1], vector, result)/(scalar_product(size[1], result, result)*scalar_product(size[1], vector, vector)); 
+		free(result);
+		printf("Got difference of %lf for eigenvector %d\n", diff, k);
+	}
+	
+	free(mat);
+	free(q);
+	
 }
 
 void test_gram_schmidt(char *matrix_filename) {
@@ -79,11 +106,13 @@ void test_gram_schmidt(char *matrix_filename) {
 		if (abs(tmp2) > 1e-14)
 			printf("Wrong orthogonality! Expected 0 got : %lf\n", tmp2);
 	}
+	free(mat);
 }
 
 int main() {
 	//test3x3();
 	test_gram_schmidt("../test/matrices/simple3x3");
+	test_eigenvector("../test/matrices/simple3x3");
 	test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }

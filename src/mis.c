@@ -10,7 +10,7 @@
 #include <gsl/gsl_eigen.h>
 
 // Returns the scalar product of u and v
-double scalar_product(int N, int M, double u[N], double v[N]) {
+double scalar_product(int N, double u[N], double v[N]) {
 
 	double* w = malloc(sizeof(double)*N);
 	double result = 0;
@@ -81,8 +81,8 @@ void orthonormalize(int N, int M, double A[M][N]) {
 		}
 
 		for (int k = 0; k<i; k++) {
-			norm = scalar_product(N, M, A[i], A[k]);
-			norm /= scalar_product(N, M, A[k], A[k]);
+			norm = scalar_product(N, A[i], A[k]);
+			norm /= scalar_product(N, A[k], A[k]);
 
 
 			for (int j = 0; j<N; j++) {
