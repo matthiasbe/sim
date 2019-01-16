@@ -51,28 +51,34 @@ void test3x3() {
 	free(mat);
 }
 
-void test_eigenvector(char *matrix_filename){
-	printf("Test eigenvector computation\n");
+void test_eigenvector(int N, int M){
+	printf("Test eigenvector computation of size %dx%d\n", N, N);
 	int size[2];
-	double *mat;
-	read_matrix(matrix_filename, size, &mat);
-	double (*A)[size[1]] = (double (*) [size[1]]) mat;
-	double (*q)[2] = (double (*)[2]) malloc(sizeof(double)*2*size[1]);
-	init_q(size[1], 2, q);
+	// read_matrix(matrix_filename, size, &mat);
+	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);
+	init(N, M, A, q);
 
-	mis(size[1], 2, A, q, 1000);
-	for (int k = 0; k < 2; ++k)
+	mis(N, M, A, q, 1);
+
+	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	transpose(N, M, q, transposed);
+	free(q);
+	for (int k = 0; k < M; ++k)
 	{
-		double* vector = (double *) q;
-		double *result = (double*) malloc(sizeof(double) * size[1]);
-		matrix_product(size[1], size[1], 1, A, (double(*)[1]) vector, (double(*)[1]) result);
-		double diff = scalar_product(size[1], vector, result)/(scalar_product(size[1], result, result)*scalar_product(size[1], vector, vector)); 
+		double* vector = (double *) transposed[k];
+		double *result = (double*) malloc(sizeof(double) * N);
+		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+		printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
+		printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
+		printf("Scalar prod 3 : %lf\n", scalar_product(N, vector, vector));
+		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
 		free(result);
 		printf("Got difference of %lf for eigenvector %d\n", diff, k);
 	}
 	
-	free(mat);
-	free(q);
+	free(A);
+	free(transposed);
 	
 }
 
@@ -112,7 +118,7 @@ void test_gram_schmidt(char *matrix_filename) {
 int main() {
 	//test3x3();
 	test_gram_schmidt("../test/matrices/simple3x3");
-	test_eigenvector("../test/matrices/simple3x3");
+	test_eigenvector(1000, 5);
 	test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }

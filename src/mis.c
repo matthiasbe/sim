@@ -11,8 +11,7 @@
 
 // Returns the scalar product of u and v
 double scalar_product(int N, double u[N], double v[N]) {
-
-	double* w = malloc(sizeof(double)*N);
+	double* w = (double *) malloc(sizeof(double)*N);
 	double result = 0;
 	
 	int i;
@@ -148,6 +147,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
+    	printf("Iteration number %d\n", n);
 		// v = A * Q
         matrix_product(N, N, M, A, q, Z);
 	
