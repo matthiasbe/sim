@@ -37,15 +37,14 @@ void test3x3() {
 	double computed_evec[3][3];
 	init_q(3, 3, computed_evec);
 
-	mis(3, 3, (double (*)[]) A, computed_evec, 50);
+		mis(3, 3, (double (*)[]) A, computed_evec, 250);
 
-	for (int i = 0; i<3; i++) {
-
-		for ( int j = 0; j<3; j++) {
-			printf("[%f]", computed_evec[i][j]);
+		for (int i = 0; i<3; i++) {
+			for ( int j = 0; j<3; j++) {
+				printf("%f, ", computed_evec[i][j] / expected_evec[i][j]);
+			}
+			printf("\n");
 		}
-		printf("\n");
-	}
 }
 
 void test_gram_schmidt(char *matrix_filename) {
@@ -82,9 +81,9 @@ void test_gram_schmidt(char *matrix_filename) {
 }
 
 int main() {
-	//test3x3();
-	test_gram_schmidt("../test/matrices/simple3x3");
-	test_gram_schmidt("../test/matrices/3x3");
+	test3x3();
+	//test_gram_schmidt("../test/matrices/simple3x3");
+	//test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }
 

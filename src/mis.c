@@ -32,13 +32,13 @@ double scalar_product(int N, int M, double u[N], double v[N]) {
 // C = AB
 void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P]){
 	double result;
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int k = 0; k<M; k++) {
 		for (int i = 0; i<P;i++) {
 			result = 0.0;
-			#pragma omp parallel for reduction (+:result)
+			//#pragma omp parallel for reduction (+:result)
 			for (int j = 0; j<N;j++) {
-				result += A[k][j] * B[i][j];
+				result += A[k][j] * B[j][i];
 			}
 			C[k][i] = result;
 		}
@@ -46,7 +46,7 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 }
 
 void transpose(int M, int N, double A[M][N], double T[N][M]){
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < M; ++j)
@@ -107,8 +107,6 @@ void orthonormalize(int N, int M, double A[M][N]) {
 			A[i][j] /= temp_norm;
 		}
 	}
-
-
 }
 
 // Print the A matrix for debug purpose
@@ -151,11 +149,13 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 		// v = A * Q
         matrix_product(N, N, M, A, q, Z);
 	
+		// QR decomposition V = Z R
         orthonormalize(N, M, Z);
 
+		// B = Zt A Z
         projection(N, M, A, Z, B);
 
-        //Schur factorization
+        //Schur factorization B = Yt R Y
         gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
         gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
         gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
@@ -164,7 +164,14 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
         gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
 
 
+		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
+
+		
+		for ( int i = 0; i<M; i++) {
+				printf("[%f]", eigenvalues[i]);
+		}
+		printf("\n");
 
         gsl_vector_complex_free(eigenvalues);
         gsl_matrix_free(gsl_Y);
