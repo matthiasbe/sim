@@ -65,9 +65,9 @@ void test_eigenvector(int N, int M){
 	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
 	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);
 	init(N, M, A, q);
-	print_matrix(N, N, A);
+	// print_matrix(N, N, A);
 
-	mis(N, M, A, q, 1);
+	mis(N, M, A, q, 10000);
 
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 	transpose(N, M, q, transposed);
@@ -75,7 +75,6 @@ void test_eigenvector(int N, int M){
 	for (int k = 0; k < M; ++k)
 	{
 		double* vector = (double *) transposed[k];
-		normalize(N, vector);
 		double *result = (double*) malloc(sizeof(double) * N);
 		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
 		printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
@@ -127,7 +126,7 @@ void test_gram_schmidt(char *matrix_filename) {
 int main() {
 	//test3x3();
 	test_gram_schmidt("../test/matrices/simple3x3");
-	test_eigenvector(3, 2);
+	test_eigenvector(100, 2);
 	test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }
