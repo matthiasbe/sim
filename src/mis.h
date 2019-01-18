@@ -5,4 +5,5 @@ double scalar_product(int N, double u[N], double v[N]);
 void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P]);
 void transpose(int M, int N, double A[M][N], double T[N][M]);
 void projection(int N, int M, double A[N][N], double Z[N][M], double B[M][M]);
+void print_matrix(int N, int M, double A[N][M]);
 

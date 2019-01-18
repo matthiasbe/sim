@@ -67,51 +67,37 @@ void projection(int N, int M, double A[N][N], double Z[N][M], double B[M][M]){
 	matrix_product(M, N, M, transposed, intermediate, B);
 }
 
-/* Make the system of column vecotrs of the matrix A orthogonal and orthonormal
+/* Make the system of line vectors of the matrix A orthogonal and orthonormal
  * using Gram-Schmidt algorithm */
-void orthonormalize(int N, int M, double A[M][N]) {
-	
-	double temp[N];
-	double norm, temp_norm;
-
-	for(int i = 0; i<M; i++) {
-		for (int j = 0; j<N; j++) {
-			temp[j] = A[i][j];
-		}
-
+void orthonormalize(int N, int M, double A[N][M]) {
+	double temp_norm;
+	for(int i = 1; i<N; i++) {
 		for (int k = 0; k<i; k++) {
-			norm = scalar_product(N, A[i], A[k]);
-			norm /= scalar_product(N, A[k], A[k]);
-
-
-			for (int j = 0; j<N; j++) {
-				temp[j] -= norm * A[k][j];
+			double norm = scalar_product(M, A[i], A[k]) / scalar_product(M, A[k], A[k]);
+			for (int j = 0; j<M; j++) {
+				A[i][j] -= norm * A[k][j];
 			}
-		}
-		for (int j = 0; j<N; j++) {
-			A[i][j] = temp[j];
 		}
 	}
 
-	for(int i = 0; i<M; i++) {
-
+	for(int i = 0; i<N; i++) {
 		temp_norm = 0;
-		for ( int k = 0; k<N; k++) {
+		for (int k = 0; k<M; k++) {
 			temp_norm += A[i][k] * A[i][k];
 		}
 
 		temp_norm = sqrt(temp_norm);
 
-		for (int j = 0; j<N; j++) {
+		for (int j = 0; j<M; j++) {
 			A[i][j] /= temp_norm;
 		}
 	}
 }
 
 // Print the A matrix for debug purpose
-void print_matrix(int N, double A[N][N]) {
+void print_matrix(int N, int M, double A[N][M]) {
 	for (int i = 0; i<N ; i++) {
-		for (int j = 0; j<N; j++) {
+		for (int j = 0; j<M; j++) {
 			printf("[%f]",A[i][j]);
 		}
 		printf("\n");
@@ -121,17 +107,17 @@ void print_matrix(int N, double A[N][N]) {
 // Initialize A and q with random values
 void init(int N, int M, double A[N][N], double q[N][M]) {
 	for (int i = 0; i<N; i++) {
-		double random_dbl = (double) rand();
-		for (int j = 1; j<i; j++) {
+		double random_dbl = (double) rand() / RAND_MAX;
+		for (int j = 0; j<i; j++) {
 			A[i][j] = random_dbl;
 			A[j][i] = random_dbl;
-			random_dbl = (double) rand();
+			random_dbl = (double) rand() / RAND_MAX;
 		}
 		A[i][i] = random_dbl;
 
 		for (int j = 0; j<M; j++) {
-			random_dbl = (double) rand();
-			q[j][i] = random_dbl;
+			random_dbl = (double) rand() / RAND_MAX;
+			q[i][j] = random_dbl;
 		}
 	}
 }
@@ -142,18 +128,41 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     double Z[N][M];
     double B[M][M];
     double H[M][M];
+    double Zt[M][N];
 
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
     	printf("Iteration number %d\n", n);
-		// v = A * Q
+    	printf("A =\n");
+    	print_matrix(N, N, A);
+    	printf("\n");
+
+    	printf("q =\n");
+    	print_matrix(N, M, q);
+    	printf("\n");
+
+		// V = A * Q
         matrix_product(N, N, M, A, q, Z);
+
+        printf("V =\n");
+    	print_matrix(N, M, Z);
+    	printf("\n");
 	
 		// QR decomposition V = Z R
-        orthonormalize(N, M, Z);
+		transpose(N, M, Z, Zt);
+        orthonormalize(M, N, Zt);
+        transpose(M, N, Zt, Z);
+
+        printf("Z =\n");
+    	print_matrix(N, M, Z);
+    	printf("\n");
 
 		// B = Zt A Z
         projection(N, M, A, Z, B);
+
+        printf("B =\n");
+    	print_matrix(M, M, B);
+    	printf("\n");
 
         //Schur factorization B = Yt R Y
         gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
