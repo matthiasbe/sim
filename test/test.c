@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "../src/mis.h"
 #include "../src/read_file.h"
+#include <limits.h>
 
 void init_q(int N, int M, double q[M][N]){
 	for (int i = 0; i < M; ++i)
@@ -45,6 +46,39 @@ void test3x3() {
 			}
 			printf("\n");
 		}
+		printf("\n");
+	free(A);
+}
+
+void test_eigenvector(int N, int M){
+	printf("Test eigenvector computation of size %dx%d\n", N, N);
+	int size[2];
+	// read_matrix(matrix_filename, size, &mat);
+	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);
+	init(N, M, A, q);
+
+	mis(N, M, A, q, 1);
+
+	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	transpose(N, M, q, transposed);
+	free(q);
+	for (int k = 0; k < M; ++k)
+	{
+		double* vector = (double *) transposed[k];
+		double *result = (double*) malloc(sizeof(double) * N);
+		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+		printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
+		printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
+		printf("Scalar prod 3 : %lf\n", scalar_product(N, vector, vector));
+		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
+		free(result);
+		printf("Got difference of %lf for eigenvector %d\n", diff, k);
+	}
+	
+	free(A);
+	free(transposed);
+	
 }
 
 void test_gram_schmidt(char *matrix_filename) {
@@ -56,34 +90,35 @@ void test_gram_schmidt(char *matrix_filename) {
 
 	orthonormalize(size[0], size[1], A);
 
-	for (int i = 0; i<3; i++) {
+	for (int i = 0; i<size[0]; i++) {
 
-		for ( int j = 0; j<3; j++) {
+		for ( int j = 0; j<size[1]; j++) {
 			printf("[%f]", A[i][j]);
 		}
 		printf("\n");
 	}
 
 	printf("\n");
-
 	for (int i = 0; i<3; i++) {
 		double tmp2 = 0;
 		double tmp = 0;
 		for ( int j = 0; j<3; j++) {
 			tmp += pow(A[j][i], 2);
-			tmp += A[j][i]*A[j][(i + 1)%3];
+			tmp2 += A[j][i]*A[j][(i + 1)%3];
 		}
 		if ((float) tmp != 1.0)
-			printf("Expected 1 got : %f\n", tmp, 30);
-		if (tmp2 != 0.0)
-			printf("Expected 0 got : %f\n", tmp2, 30);
+			printf("Wrong normalization! Expected 1 got : %lf\n", tmp);
+		if (abs(tmp2) > 1e-14)
+			printf("Wrong orthogonality! Expected 0 got : %lf\n", tmp2);
 	}
+	free(mat);
 }
 
 int main() {
-	test3x3();
-	//test_gram_schmidt("../test/matrices/simple3x3");
-	//test_gram_schmidt("../test/matrices/3x3");
+	//test3x3();
+	test_gram_schmidt("../test/matrices/simple3x3");
+	test_eigenvector(1000, 5);
+	test_gram_schmidt("../test/matrices/3x3");
 	return 0;
 }
 
