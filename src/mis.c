@@ -172,6 +172,14 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 
         gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
 
+        printf("eigenvalues =\n");
+    	print_matrix(M, 2, eigenvalues->data);
+    	printf("\n");
+
+    	printf("Y =\n");
+    	print_matrix(M, M, gsl_Y->data);
+    	printf("\n");
+
 
 		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
