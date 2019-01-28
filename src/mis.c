@@ -5,9 +5,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "../src/mis.h"
 #include <omp.h>
 #include <sys/time.h>
 #include <gsl/gsl_eigen.h>
+
+void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accuracies[M]){
+	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	transpose(N, M, q, transposed);
+	for (int k = 0; k < M; ++k)
+	{
+		double* vector = (double *) transposed[k];
+		double *result = (double*) malloc(sizeof(double) * N);
+		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+		printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
+		printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
+		printf("Scalar prod 3 : %lf\n", scalar_product(N, vector, vector));
+		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
+		free(result);
+		accuracies[k] = diff;
+	}
+	
+	free(transposed);
+}
 
 // Returns the scalar product of u and v
 double scalar_product(int N, double u[N], double v[N]) {
@@ -130,16 +150,20 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     double H[M][M];
     double Zt[M][N];
 
+    double accuracies[M];
+
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
+    	measure_accuracy(N, M, q, A, accuracies);
+        print_matrix(1, M, accuracies);
     	// printf("Iteration number %d\n", n);
     	// printf("A =\n");
     	// print_matrix(N, N, A);
     	// printf("\n");
 
-    	// printf("q =\n");
-    	// print_matrix(N, M, q);
-    	// printf("\n");
+    	printf("q =\n");
+    	print_matrix(N, M, q);
+    	printf("\n");
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z);
