@@ -123,11 +123,35 @@ void test_gram_schmidt(char *matrix_filename) {
 	free(mat);
 }
 
+void test_read() {
+	int size[2];
+	int M = 5;
+	double *mat;
+	read_mtx("../test/matrices/bcspwr01.mtx", size, &mat);
+	double (*A)[size[1]] = (double (*) []) mat;
+	int N = size[0];
+
+	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*N*M);
+	init_q(N, M, q);
+
+	mis(N, M, A, q, 150);
+
+	double *expected_evec;
+	int size_evec[2];
+	read_matrix("../test/matrices/bcspwr01.eve", size_evec, &expected_evec);
+	double (*expected)[size_evec[1]] = (double (*) []) expected_evec;
+
+	for (int i = 0; i<size_evec[0]; i++) {
+		double *vector = A[i];
+		double *result = expected[i];
+		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
+		printf("Distance : %f\n", diff);
+
+	}
+}
+
 int main() {
-	//test3x3();
-	test_gram_schmidt("../test/matrices/simple3x3");
-	test_eigenvector(100, 2);
-	test_gram_schmidt("../test/matrices/3x3");
+	test_read();
 	return 0;
 }
 
