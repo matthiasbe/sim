@@ -172,8 +172,8 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 
         gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
 
-     //    printf("eigenvalues =\n");
-    	// print_matrix(M, 2, eigenvalues->data);
+        // printf("eigenvalues =\n");
+    	// print_matrix(1, M, eigenvalues->data);
     	// printf("\n");
 
     	// printf("Y =\n");

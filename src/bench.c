@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
 
 	if (argc != 4) {
-		printf("Usage : ./mis N M <nb-iterations>\n");
+		printf("Usage : ./bench N M <nb-iterations>\n");
 		printf("N : size of the matrix\n");
 		printf("M : number of eigenvectors to guess\n");
 		exit(-1);
