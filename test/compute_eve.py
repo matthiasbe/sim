@@ -5,7 +5,7 @@
 from scipy.io import mmread,mmwrite
 import numpy as np
 
-filename = "test/matrices/bcspwr03"
+filename = "matrices/bcspwr01"
 
 A = mmread(filename + ".mtx")
 
@@ -21,4 +21,4 @@ eigenVectors = eig[1][:,idx]
 # Write in a file 5 first eves
 with open(filename + '.eve', 'w') as f:
     for line in eigenVectors[:5]:
-        np.savetxt(f, line, fmt='%.2f')
+        np.savetxt(f, line, fmt='%f')

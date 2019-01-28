@@ -134,15 +134,31 @@ void test_read() {
 	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*N*M);
 	init_q(N, M, q);
 
-	mis(N, M, A, q, 150);
+	mis(N, M, A, q, 2000);
+
+
+	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	transpose(N, M, q, transposed);
+	free(q);
+
 
 	double *expected_evec;
 	int size_evec[2];
 	read_matrix("../test/matrices/bcspwr01.eve", size_evec, &expected_evec);
 	double (*expected)[size_evec[1]] = (double (*) []) expected_evec;
 
+	for (int i = 0; i<N; i++) {
+		printf("[%f]", expected[0][i]);
+	}
+	printf("\n");
+
+	for (int i = 0; i<N; i++) {
+		printf("[%f]", transposed[0][i]);
+	}
+	printf("\n");
+
 	for (int i = 0; i<size_evec[0]; i++) {
-		double *vector = A[i];
+		double *vector = transposed[i];
 		double *result = expected[i];
 		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
 		printf("Distance : %f\n", diff);

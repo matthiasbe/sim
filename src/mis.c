@@ -188,7 +188,6 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
         gsl_matrix_free(gsl_Y);
         gsl_eigen_nonsymm_free(ws);
 
-        // q = v
         #pragma omp parallel for
         for(int i = 0; i<M; i++) {
             for(int j = 0; j<N; j++) {
