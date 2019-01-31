@@ -125,7 +125,7 @@ void test_gram_schmidt(char *matrix_filename) {
 
 void test_read() {
 	int size[2];
-	int M = 5;
+	int M = 10;
 	double *mat;
 	read_mtx("../test/matrices/bcspwr01.mtx", size, &mat);
 	double (*A)[size[1]] = (double (*) []) mat;
@@ -134,8 +134,7 @@ void test_read() {
 	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*N*M);
 	init_q(N, M, q);
 
-	mis(N, M, A, q, 2000);
-
+	mis(N, M, A, q, 15);
 
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 	transpose(N, M, q, transposed);
@@ -164,6 +163,9 @@ void test_read() {
 		printf("Distance : %f\n", diff);
 
 	}
+	free(expected);
+	free(transposed);
+
 }
 
 int main() {
