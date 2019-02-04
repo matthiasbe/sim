@@ -12,6 +12,8 @@ Utiliser matrice
 * Faire un README
 * Faire un makefile
 
+Lire le format MM (avec valeur derrière) cf matrice bcsstk01.mtx
+
 
 ## Compile project
 

@@ -160,7 +160,7 @@ void test_read() {
 		double *vector = transposed[i];
 		double *result = expected[i];
 		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
-		printf("Distance : %f\n", diff);
+		printf("Error : %f\n", diff);
 
 	}
 	free(expected);
