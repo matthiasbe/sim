@@ -98,7 +98,14 @@ void read_mtx(char *filename, int size[2], double **A) {
 		i = atoi(strtok(line, " "));
 		// Second coord is the column
 		j = atoi(strtok(NULL, " "));
-		mat[i-1][j-1] = 1;
+
+		// Third optional token is element value (default 1)
+		char* value = strtok(NULL, " ");
+		if (value == NULL) // No value present, set to 1
+			mat[i-1][j-1] = 1;
+		else
+			mat[i-1][j-1] = atof(value);
+
 	}
 	*A = mat[0];
 }
