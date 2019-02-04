@@ -18,8 +18,6 @@ void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accur
 		double* vector = (double *) transposed[k];
 		double *result = (double*) malloc(sizeof(double) * N);
 		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
-		// printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
-		// printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
 		double diff = scalar_product(N, vector, result)/sqrt(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
 		free(result);
 		accuracies[k] = diff;
@@ -125,20 +123,6 @@ void print_matrix(int N, int M, double A[N][M]) {
 
 // Initialize A and q with random values
 void init(int N, int M, double A[N][N], double q[N][M]) {
-	// for (int i = 0; i<N; i++) {
-	// 	double random_dbl = (double) rand() / RAND_MAX;
-	// 	for (int j = 0; j<i; j++) {
-	// 		A[i][j] = random_dbl;
-	// 		A[j][i] = random_dbl;
-	// 		random_dbl = (double) rand() / RAND_MAX;
-	// 	}
-	// 	A[i][i] = random_dbl;
-
-	// 	for (int j = 0; j<M; j++) {
-	// 		random_dbl = (double) rand() / RAND_MAX;
-	// 		q[i][j] = random_dbl;
-	// 	}
-	// }
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < N; ++j)
@@ -151,6 +135,16 @@ void init(int N, int M, double A[N][N], double q[N][M]) {
 				q[i][j] = (double) rand() / RAND_MAX;
 		}
 	}
+}
+
+void init_q(int N, int M, double q[M][N]){
+	for (int i = 0; i < M; ++i)
+	{
+		for (int j = 0; j<N; j++) {
+			q[i][j] = (double) rand() / RAND_MAX;
+		}
+	}
+	
 }
 
 // Do the Simultaneous Iterations Methods
@@ -167,37 +161,17 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     for(int n = 0; n < iter; n++) {
     	measure_accuracy(N, M, q, A, accuracies);
         print_matrix(1, M, accuracies);
-    	// printf("Iteration number %d\n", n);
-    	// printf("A =\n");
-    	// print_matrix(N, N, A);
-    	// printf("\n");
-
-    	// printf("q =\n");
-    	// print_matrix(N, M, q);
-    	// printf("\n");
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z);
 
-     //    printf("V =\n");
-    	// print_matrix(N, M, Z);
-    	// printf("\n");
-	
 		// QR decomposition V = Z R
 		transpose(N, M, Z, Zt);
         orthonormalize(M, N, Zt);
         transpose(M, N, Zt, Z);
 
-     //    printf("Z =\n");
-    	// print_matrix(N, M, Z);
-    	// printf("\n");
-
 		// B = Zt A Z
         projection(N, M, A, Z, B);
-
-     //    printf("B =\n");
-    	// print_matrix(M, M, B);
-    	// printf("\n");
 
         //Schur factorization B = Yt R Y
         gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
@@ -206,15 +180,6 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
         gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
 
         gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
-
-        // printf("eigenvalues =\n");
-    	// print_matrix(1, M, eigenvalues->data);
-    	// printf("\n");
-
-    	// printf("Y =\n");
-    	// print_matrix(M, M, gsl_Y->data);
-    	// printf("\n");
-
 
 		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
@@ -229,8 +194,6 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
                 q[i][j] = Z[i][j];
             }
         }
-        // print_matrix(N, M, q);
-        // printf("\n");
     }
 }
 

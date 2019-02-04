@@ -5,16 +5,6 @@
 #include "../src/read_file.h"
 #include <limits.h>
 
-void init_q(int N, int M, double q[M][N]){
-	for (int i = 0; i < M; ++i)
-	{
-		for (int j = 0; j<N; j++) {
-			q[i][j] = (double) rand() / RAND_MAX;
-		}
-	}
-	
-}
-
 void normalize(int N, double vect[N]){
 	double norm = sqrt(scalar_product(N, vect, vect));
 	for (int i = 0; i < N; ++i)
@@ -67,7 +57,7 @@ void test_eigenvector(int N, int M){
 	// print_matrix(N, N, A);
 
 	double *mat;
-	read_mtx("../test/matrices/bcsstm12.mtx", size, &mat);
+	read_mtx("../test/matrices/bcspwr01.mtx", size, &mat);
 	double (*A)[size[1]] = (double (*) []) mat;
 	N = size[0];
 	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);

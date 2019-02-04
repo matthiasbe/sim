@@ -74,10 +74,29 @@ int main(int argc, char* argv[]) {
 
 	parse_args(&args, argc, argv);
 
-	double (*A)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
-	double (*q)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.M*args.N);
 
-	init(args.N, args.M, A, q);
+	double *mat;
+	double (*A)[args.N];
+	double (*q)[args.N];
+
+	if (args.matrix_filename != NULL) {
+		int size[2];
+		read_mtx(args.matrix_filename, size, &mat);
+		if (size[0] != size[1]) {
+			fprintf(stderr, "Cannot handle non-square matrices.\n");
+			exit(-1);
+		}
+
+		args.N = size[0];
+		A = (double (*) []) mat;
+		q = (double (*) []) malloc(sizeof(double)*args.M*args.N);
+		init_q(args.N, args.M, q);
+
+	} else {
+		double (*A)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
+		double (*q)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.M*args.N);
+		init(args.N, args.M, A, q);
+	}
 
 	struct timeval start;
 	gettimeofday(&start, NULL);
