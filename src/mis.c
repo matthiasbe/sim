@@ -5,9 +5,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "../src/mis.h"
 #include <omp.h>
 #include <sys/time.h>
 #include <gsl/gsl_eigen.h>
+
+void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accuracies[M]){
+	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	transpose(N, M, q, transposed);
+	for (int k = 0; k < M; ++k)
+	{
+		double* vector = (double *) transposed[k];
+		double *result = (double*) malloc(sizeof(double) * N);
+		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+		// printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
+		// printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
+		double diff = scalar_product(N, vector, result)/sqrt(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
+		free(result);
+		accuracies[k] = diff;
+	}
+	
+	free(transposed);
+}
 
 // Returns the scalar product of u and v
 double scalar_product(int N, double u[N], double v[N]) {
@@ -34,7 +53,7 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 	//#pragma omp parallel for
 	for (int k = 0; k<M; k++) {
 		for (int i = 0; i<P;i++) {
-			result = 0.0;
+			result = 0;
 			//#pragma omp parallel for reduction (+:result)
 			for (int j = 0; j<N;j++) {
 				result += A[k][j] * B[j][i];
@@ -106,18 +125,30 @@ void print_matrix(int N, int M, double A[N][M]) {
 
 // Initialize A and q with random values
 void init(int N, int M, double A[N][N], double q[N][M]) {
-	for (int i = 0; i<N; i++) {
-		double random_dbl = (double) rand() / RAND_MAX;
-		for (int j = 0; j<i; j++) {
-			A[i][j] = random_dbl;
-			A[j][i] = random_dbl;
-			random_dbl = (double) rand() / RAND_MAX;
-		}
-		A[i][i] = random_dbl;
+	// for (int i = 0; i<N; i++) {
+	// 	double random_dbl = (double) rand() / RAND_MAX;
+	// 	for (int j = 0; j<i; j++) {
+	// 		A[i][j] = random_dbl;
+	// 		A[j][i] = random_dbl;
+	// 		random_dbl = (double) rand() / RAND_MAX;
+	// 	}
+	// 	A[i][i] = random_dbl;
 
-		for (int j = 0; j<M; j++) {
-			random_dbl = (double) rand() / RAND_MAX;
-			q[i][j] = random_dbl;
+	// 	for (int j = 0; j<M; j++) {
+	// 		random_dbl = (double) rand() / RAND_MAX;
+	// 		q[i][j] = random_dbl;
+	// 	}
+	// }
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < N; ++j)
+		{
+			if(i == j)
+				A[i][i] = i + 1;
+			else
+				A[i][j] = 0;
+			if(j < M)
+				q[i][j] = (double) rand() / RAND_MAX;
 		}
 	}
 }
@@ -130,8 +161,12 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     double H[M][M];
     double Zt[M][N];
 
+    double accuracies[M];
+
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
+    	measure_accuracy(N, M, q, A, accuracies);
+        print_matrix(1, M, accuracies);
     	// printf("Iteration number %d\n", n);
     	// printf("A =\n");
     	// print_matrix(N, N, A);
@@ -194,6 +229,8 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
                 q[i][j] = Z[i][j];
             }
         }
+        // print_matrix(N, M, q);
+        // printf("\n");
     }
 }
 

@@ -98,7 +98,7 @@ void read_mtx(char *filename, int size[2], double **A) {
 		i = atoi(strtok(line, " "));
 		// Second coord is the column
 		j = atoi(strtok(NULL, " "));
-		mat[i][j] = 1;
+		mat[i-1][j-1] = 1;
 	}
 	*A = mat[0];
 }

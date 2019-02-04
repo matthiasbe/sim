@@ -9,7 +9,7 @@ void init_q(int N, int M, double q[M][N]){
 	for (int i = 0; i < M; ++i)
 	{
 		for (int j = 0; j<N; j++) {
-			q[i][j] = (double) rand();
+			q[i][j] = (double) rand() / RAND_MAX;
 		}
 	}
 	
@@ -62,31 +62,39 @@ void test_eigenvector(int N, int M){
 	printf("Test eigenvector computation of size %dx%d\n", N, N);
 	int size[2];
 	// read_matrix(matrix_filename, size, &mat);
-	double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
-	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);
-	init(N, M, A, q);
+	// double (*A)[N] = (double (*)[N]) malloc(sizeof(double)*N*N);
+	// init(N, M, A, q);
 	// print_matrix(N, N, A);
 
-	mis(N, M, A, q, 10000);
-
-	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
-	transpose(N, M, q, transposed);
-	free(q);
-	for (int k = 0; k < M; ++k)
-	{
-		double* vector = (double *) transposed[k];
-		double *result = (double*) malloc(sizeof(double) * N);
-		matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
-		printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
-		printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
-		printf("Scalar prod 3 : %lf\n", scalar_product(N, vector, vector));
-		double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
-		free(result);
-		printf("Got difference of %lf for eigenvector %d\n", diff, k);
-	}
+	double *mat;
+	read_mtx("../test/matrices/bcsstm12.mtx", size, &mat);
+	double (*A)[size[1]] = (double (*) []) mat;
+	N = size[0];
+	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*M*N);
 	
+	init_q(N, M, q);
+
+	mis(N, M, A, q, 50);
+
+	// print_matrix(N, M, q);
+
+	// double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
+	// transpose(N, M, q, transposed);
+	// free(q);
+	// for (int k = 0; k < M; ++k)
+	// {
+	// 	double* vector = (double *) transposed[k];
+	// 	double *result = (double*) malloc(sizeof(double) * N);
+	// 	matrix_product(N, N, 1, A, (double(*)[1]) vector, (double(*)[1]) result);
+	// 	printf("Scalar prod 1 : %lf\n", scalar_product(N, vector, result));
+	// 	printf("Scalar prod 2 : %lf\n", scalar_product(N, result, result));
+	// 	printf("Scalar prod 3 : %lf\n", scalar_product(N, vector, vector));
+	// 	double diff = scalar_product(N, vector, result)/(scalar_product(N, result, result)*scalar_product(N, vector, vector)); 
+	// 	free(result);
+	// 	printf("Got difference of %lf for eigenvector %d\n", diff, k);
+	// }
+	free(q);
 	free(A);
-	free(transposed);
 	
 }
 
@@ -134,7 +142,7 @@ void test_read() {
 	double (*q)[M] = (double (*)[M]) malloc(sizeof(double)*N*M);
 	init_q(N, M, q);
 
-	mis(N, M, A, q, 15);
+	mis(N, M, A, q, 3);
 
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
 	transpose(N, M, q, transposed);
@@ -169,7 +177,8 @@ void test_read() {
 }
 
 int main() {
-	test_read();
+	// test_read();
+	test_eigenvector(100, 30);
 	return 0;
 }
 
