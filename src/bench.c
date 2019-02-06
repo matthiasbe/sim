@@ -121,23 +121,15 @@ int main(int argc, char* argv[]) {
 			init_q(args.N, args.M, q);
 
 		} else {
-			double (*A)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
-			double (*q)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.M*args.N);
+			A = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
+			q = (double (*)[args.M]) malloc(sizeof(double)*args.M*args.N);
 			init(args.N, args.M, A, q);
 		}
 
 		struct timeval start;
 		gettimeofday(&start, NULL);
 
-<<<<<<< HEAD
-	} else {
-		A = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
-		q = (double (*)[args.M]) malloc(sizeof(double)*args.M*args.N);
-		init(args.N, args.M, A, q);
-	}
-=======
 		mis(args.N, args.M, A, q, args.iter, comm);
->>>>>>> mpi
 
 		struct timeval end;
 		gettimeofday(&end, NULL);
