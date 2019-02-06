@@ -48,11 +48,11 @@ double scalar_product(int N, double u[N], double v[N]) {
 // C = AB
 void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P]){
 	double result;
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for (int k = 0; k<M; k++) {
 		for (int i = 0; i<P;i++) {
 			result = 0;
-			//#pragma omp parallel for reduction (+:result)
+			#pragma omp parallel for reduction (+:result)
 			for (int j = 0; j<N;j++) {
 				result += A[k][j] * B[j][i];
 			}
@@ -62,7 +62,7 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 }
 
 void transpose(int M, int N, double A[M][N], double T[N][M]){
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < M; ++j)

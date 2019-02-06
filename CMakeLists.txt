@@ -13,7 +13,7 @@ find_package(OpenMP COMPONENTS C REQUIRED)
 find_package(GSL REQUIRED)
 set(CMAKE_CXX_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -pg")
 
 add_executable(tests test/test.c ${DEPENDENCIES})
 add_executable(bench src/bench.c ${DEPENDENCIES})

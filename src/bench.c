@@ -73,11 +73,11 @@ int main(int argc, char* argv[]) {
 	struct arguments args;
 
 	parse_args(&args, argc, argv);
-
+	printf("M : %d, N : %d, iter : %d\n", args.M, args.N, args.iter);
 
 	double *mat;
 	double (*A)[args.N];
-	double (*q)[args.N];
+	double (*q)[args.M];
 
 	if (args.matrix_filename != NULL) {
 		int size[2];
@@ -93,8 +93,8 @@ int main(int argc, char* argv[]) {
 		init_q(args.N, args.M, q);
 
 	} else {
-		double (*A)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
-		double (*q)[args.N] = (double (*)[args.N]) malloc(sizeof(double)*args.M*args.N);
+		A = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
+		q = (double (*)[args.M]) malloc(sizeof(double)*args.M*args.N);
 		init(args.N, args.M, A, q);
 	}
 
