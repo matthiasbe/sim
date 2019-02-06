@@ -11,16 +11,23 @@ project(mis)
 
 find_package(OpenMP COMPONENTS C REQUIRED)
 find_package(GSL REQUIRED)
-set(CMAKE_CXX_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+find_package(MPI REQUIRED)
+set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+# Add flag for profile tool gprof
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 
-add_executable(tests test/test.c ${DEPENDENCIES})
+#add_executable(tests test/test.c ${DEPENDENCIES})
 add_executable(bench src/bench.c ${DEPENDENCIES})
 
-target_link_libraries(tests m ${GSL_LIBRARIES})
-target_include_directories(tests PUBLIC ${GSL_INCLUDE_DIRS})
+# Include GSL library
+#target_link_libraries(tests m ${GSL_LIBRARIES})
+#target_include_directories(tests PUBLIC ${GSL_INCLUDE_DIRS})
 target_link_libraries(bench m ${GSL_LIBRARIES})
 target_include_directories(bench PUBLIC ${GSL_INCLUDE_DIRS})
 
-
+# Include MPI library
+#target_include_directories(tests PUBLIC ${MPI_C_INCLUDE_PATH})
+#target_link_libraries(tests ${MPI_C_LIBRARIES})
+target_include_directories(bench PUBLIC ${MPI_C_INCLUDE_PATH})
+target_link_libraries(bench ${MPI_C_LIBRARIES})
