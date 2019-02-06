@@ -170,19 +170,19 @@ int main(int argc, char* argv[]) {
 			MPI_Recv(B, N*P, MPI_DOUBLE, 0, 1, comm, NULL);
 			printf("[%i]received B\n", rank);
 
-//
-//			double result;
-//			#pragma omp parallel for
-//			for (int k = 0; k<max[0] - min[0]; k++) {
-//				for (int i = min[1]; i<max[1];i++) {
-//					result = 0;
-//					#pragma omp parallel for reduction (+:result)
-//					for (int j = 0; j<N;j++) {
-//						result += A[k][j] * B[j][i];
-//					}
-//					C[k][i] = result;
-//				}
-//			}
+
+			double result;
+			#pragma omp parallel for
+			for (int k = 0; k<max[0] - min[0]; k++) {
+				for (int i = min[1]; i<max[1];i++) {
+					result = 0;
+					#pragma omp parallel for reduction (+:result)
+					for (int j = 0; j<N;j++) {
+						result += A[k*N+j] * B[j*P+i];
+					}
+					C[k*P+i] = result;
+				}
+			}
 
 			MPI_Send(C, (max[0] - min[0])*(max[1]-min[1]), MPI_DOUBLE, 0, 2, comm);
 		}
