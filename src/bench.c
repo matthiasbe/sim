@@ -95,11 +95,9 @@ int main(int argc, char* argv[]) {
 	MPI_Cart_create(MPI_COMM_WORLD, 2, psize, cart_period, 1, &comm);
 	MPI_Comm_rank(comm, &rank);
 
-	printf("size : %i (%i x %i)\n", size, psize[0], psize[1]);
-
-	printf("Teeeest : %d\n", rank);
 
 	if (rank == 0) {
+		
 		struct arguments args;
 
 		parse_args(&args, argc, argv);
@@ -147,7 +145,6 @@ int main(int argc, char* argv[]) {
 	else {
 		int pcoord[2], min[2], max[2], psize[2];
 		int M, N, P;
-		printf("worker : %i\n", rank);
 		MPI_Cart_coords(comm, rank, 2, pcoord);
 		MPI_Cart_coords(comm, size-1, 2, psize);
 		psize[0]++;
@@ -160,31 +157,27 @@ int main(int argc, char* argv[]) {
 
 			compute_submatrix(psize, rank, M, P, min, max, comm);
 
-			double *A = malloc((max[0] - min[0])*N*sizeof(double));
+			double *A = malloc((max[0] - min[0] + 1)*N*sizeof(double));
 			double *B = malloc(N*P*sizeof(double));
-			double *C = malloc((max[0] - min[0])*(max[1] - min[1])*sizeof(double));
-			printf("[%i] received M=%i N=%i P=%i\n", rank, M, N, P);
+			double *C = malloc((max[0] - min[0] + 1)*(max[1] - min[1] + 1)*sizeof(double));
 
-			MPI_Recv(A, (max[0] - min[0]) * N, MPI_DOUBLE, 0, 0, comm, NULL);
-			printf("[%i]received A\n", rank);
+			MPI_Recv(A, (max[0] - min[0] + 1) * N, MPI_DOUBLE, 0, 0, comm, NULL);
 			MPI_Recv(B, N*P, MPI_DOUBLE, 0, 1, comm, NULL);
-			printf("[%i]received B\n", rank);
-
 
 			double result;
-			#pragma omp parallel for
-			for (int k = 0; k<max[0] - min[0]; k++) {
-				for (int i = min[1]; i<max[1];i++) {
+//			#pragma omp parallel for
+			for (int k = 0; k<=max[0] - min[0]; k++) {
+				for (int i = min[1]; i<=max[1];i++) {
 					result = 0;
-					#pragma omp parallel for reduction (+:result)
+//					#pragma omp parallel for reduction (+:result)
 					for (int j = 0; j<N;j++) {
 						result += A[k*N+j] * B[j*P+i];
 					}
-					C[k*P+i] = result;
+					C[k*(max[1] - min[1] + 1)+i - min[1]] = result;
 				}
 			}
 
-			MPI_Send(C, (max[0] - min[0])*(max[1]-min[1]), MPI_DOUBLE, 0, 2, comm);
+			MPI_Send(C, (max[0] - min[0] + 1)*(max[1]-min[1] + 1), MPI_DOUBLE, 0, 2, comm);
 		}
 
 	}

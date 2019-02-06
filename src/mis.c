@@ -53,10 +53,8 @@ void compute_submatrix(int psize[2], int rank, int N, int M, int min[2], int max
 	MPI_Cart_coords(comm, rank, 2, coords);
 	min[0] = coords[0] * N / psize[0];
 	min[1] = coords[1] * M / psize[1];
-	max[0] = (coords[0] + 1) * N / psize[0];
-	max[1] = (coords[1] + 1) * M / psize[1];
-
-	printf("submatrix for rank %i : %i - %i x %i - %i\n", rank, min[0], max[0], min[1], max[1]);
+	max[0] = (coords[0] + 1) * N / psize[0] - 1;
+	max[1] = (coords[1] + 1) * M / psize[1] - 1;
 }
 
 // C = AB
@@ -66,7 +64,6 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 	int psize[2], coords[2], min[2], max[2];
 	
 	MPI_Comm_size(comm, &size);
-	printf("psize : %i\n", size);
 	MPI_Cart_coords(comm, size-1, 2, psize);
 	psize[0]++;
 	psize[1]++;
@@ -74,23 +71,20 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 	for(int i = 1; i<size; i++) {
 		compute_submatrix(psize, i, M, P, min, max, comm);
 
-		printf("[0] send M=%i N=%i P=%i\n", M, N, P);
 		MPI_Send(&M, 1, MPI_INT, i, 0, comm);
 		MPI_Send(&N, 1, MPI_INT, i, 0, comm);
 		MPI_Send(&P, 1, MPI_INT, i, 0, comm);
 	
-		MPI_Send(&(A[min[0]][0]), (max[0] - min[0]) * N, MPI_DOUBLE, i, 0, comm);
-		printf("[%i] sent A\n", 0);
+		MPI_Send(&(A[min[0]][0]), (max[0] - min[0] + 1) * N, MPI_DOUBLE, i, 0, comm);
 		MPI_Send(&(B[0][0]), N*P, MPI_DOUBLE, i, 1, comm);
-		printf("[%i] sent B\n", 0);
 	}
 
 	compute_submatrix(psize, 0, M, P, min, max, comm);
 
 	double result;
 	#pragma omp parallel for
-	for (int k = 0; k<max[0]; k++) {
-		for (int i = 0; i<max[1];i++) {
+	for (int k = 0; k<=max[0]; k++) {
+		for (int i = 0; i<=max[1];i++) {
 			result = 0;
 			#pragma omp parallel for reduction (+:result)
 			for (int j = 0; j<N;j++) {
@@ -100,14 +94,14 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 		}
 	}
 
-	double tmp[M][P];
+	double tmp[M*P];
 
 	for(int i = 1; i<size; i++) {
 		compute_submatrix(psize, i, M, P, min, max, comm);
-		MPI_Recv(tmp, (max[0] - min[0])*(max[1]-min[1]), MPI_DOUBLE, i, 2, comm, NULL);
-		for(int j = 0; j < (max[0] - min[0]); j++) {
-			for (int k = 0; k < (max[1] - min[1]); k++) {
-				C[j+min[0]][k+min[1]] = tmp[j][k];
+		MPI_Recv(tmp, (max[0] - min[0] + 1)*(max[1]-min[1] + 1), MPI_DOUBLE, i, 2, comm, NULL);
+		for(int j = 0; j <= (max[0] - min[0]); j++) {
+			for (int k = 0; k <= (max[1] - min[1]); k++) {
+				C[j+min[0]][k+min[1]] = tmp[j * (max[1] - min[1] + 1) + k];
 			}
 		}
 	}
