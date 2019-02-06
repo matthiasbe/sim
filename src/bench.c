@@ -178,6 +178,10 @@ int main(int argc, char* argv[]) {
 			}
 
 			MPI_Send(C, (max[0] - min[0] + 1)*(max[1]-min[1] + 1), MPI_DOUBLE, 0, 2, comm);
+
+			free(A);
+			free(B);
+			free(C);
 		}
 
 	}

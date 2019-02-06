@@ -210,7 +210,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
     	measure_accuracy(N, M, q, A, accuracies, comm);
-        //print_matrix(1, M, accuracies);
+        print_matrix(1, M, accuracies);
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z, comm);
