@@ -9,6 +9,22 @@
 #include <omp.h>
 #include <sys/time.h>
 #include <gsl/gsl_eigen.h>
+#include <lapacke.h>
+
+void estimate_error(){
+
+}
+
+void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
+	#pragma omp parallel for
+	for (int i = 0; i < M; ++i)
+	{
+		for (int j = 0; j < N; ++j)
+		{
+			new[i][j] = mat[i][j];
+		}
+	}
+}
 
 void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accuracies[M]){
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
@@ -127,10 +143,8 @@ void init(int N, int M, double A[N][N], double q[N][M]) {
 	{
 		for (int j = 0; j < N; ++j)
 		{
-			if(i == j)
-				A[i][i] = i + 1;
-			else
-				A[i][j] = 0;
+			A[i][j] = 0;
+			A[i][i] = 1 + i;
 			if(j < M)
 				q[i][j] = (double) rand() / RAND_MAX;
 		}
@@ -156,11 +170,19 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
     double Zt[M][N];
 
     double accuracies[M];
-
+    int return_code;
+    // printf("=====A=====\n");
+    // print_matrix(N, N, A);
+    // printf("===========\n");
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
     	measure_accuracy(N, M, q, A, accuracies);
+    	printf("===Accuracy===\n");
         print_matrix(1, M, accuracies);
+        printf("==============\n");
+     //    printf("===q===\n");
+     //    print_matrix(N, M, q);
+     //    printf("=======\n");
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z);
@@ -173,27 +195,55 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter) {
 		// B = Zt A Z
         projection(N, M, A, Z, B);
 
-        //Schur factorization B = Yt R Y
-        gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
-        gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
-        gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
-        gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
+        //Factorisation de Schur LAPACK
+        double *tau = (double *) malloc(sizeof(double)*(M-1));
+        return_code = LAPACKE_dgehrd(LAPACK_ROW_MAJOR, M, 1, M, (double *) B, M, tau);
 
-        gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
+        double (*Q)[M] = (double (*)[M]) malloc(sizeof(double)*M*M);
+        double *wr = (double *) malloc(sizeof(double)*M);
+        double *wi = (double *) malloc(sizeof(double)*M);
+        copy_matrix(M, M, B, Q);
+
+        return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, M, 1, M, (double *) Q, M, tau);
+        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) wr, (double *) wi, (double *) Q, M);
+        // printf("=====Q======\n");
+        // print_matrix(M, M, Q);
+        // printf("=============\n");
+
+        // printf("=====B======\n");
+        // print_matrix(M, M, B);
+        // printf("=============\n");
+        // printf("info : %d\n", return_code);
+        ///////////////////////////////
+
+        //Schur factorization B = Yt R Y
+        // gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
+        // gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
+        // gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
+        // gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
+
+        // gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
+        // gsl_vector_view eigenvalues_real = gsl_vector_complex_real(eigenvalues);
+        // gsl_vector_view eigenvalues_imag = gsl_vector_complex_imag(eigenvalues);
+        for (int i = 0; i < M; ++i)
+        {
+        	printf("vp : %f + %fi\n", wr[i], wi[i]);
+        }
+        printf("\n");
 
 		// Qk = ZY is the new approx of eigenvectors
-        matrix_product(N, M, M, Z, (double (*)[M]) gsl_Y->data, q);
+        matrix_product(N, M, M, Z, Q, q);
 
-        gsl_vector_complex_free(eigenvalues);
-        gsl_matrix_free(gsl_Y);
-        gsl_eigen_nonsymm_free(ws);
+        // gsl_vector_complex_free(eigenvalues);
+        // gsl_matrix_free(gsl_Y);
+        // gsl_eigen_nonsymm_free(ws);
 
-        #pragma omp parallel for
-        for(int i = 0; i<M; i++) {
-            for(int j = 0; j<N; j++) {
-                q[i][j] = Z[i][j];
-            }
-        }
+        // #pragma omp parallel for
+        // for(int i = 0; i<M; i++) {
+        //     for(int j = 0; j<N; j++) {
+        //         q[i][j] = Z[i][j];
+        //     }
+        // }
     }
 }
 

@@ -11,7 +11,9 @@ struct arguments {
 	int N;
 	// Number of eigenvectors to guess
 	int M;
-	// Number of iterations
+	// Size of Krylov subspace
+	int e;
+	// Number of eigenvectors to compute
 	int iter;
 	// A matrix passed as a file
 	char* matrix_filename;
@@ -22,10 +24,11 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 
 	args->N = 0;
 	args->M = 0;
+	args->e = 0;
 	args->iter = 0;
 	args->matrix_filename = NULL;
 
-	while ((c = getopt (argc, argv, "n:m:i:f:h")) != -1) {
+	while ((c = getopt (argc, argv, "e:n:m:i:f:h")) != -1) {
 		switch (c)
 		{
 			case 'n':
@@ -34,6 +37,9 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 			case 'm':
 				args->M = atoi(optarg);
 				break;
+			case 'e':
+				args->e = atoi(optarg);
+				break;
 			case 'i':
 				args->iter = atoi(optarg);
 				break;
@@ -41,8 +47,8 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 				args->matrix_filename = optarg;
 				break;
 			case 'h':
-				printf("Usage : bench -n <matrix-size> -m <eigvec-nb> -i <iter-nb>\n");
-				printf("Or  	bench -i <iter-nb> -f <matrix-filename>\n");
+				printf("Usage : bench -n <matrix-size> -m <Krylov_size> -i <iter-nb> -e <eigvec-nb>\n");
+				printf("Or  	bench -i <iter-nb> -f <matrix-filename> -e <eigvec-nb>\n");
 				exit(0);
 			case '?':
 				if (optopt == 'n' || optopt == 'm' || optopt == 'i')
@@ -73,7 +79,6 @@ int main(int argc, char* argv[]) {
 	struct arguments args;
 
 	parse_args(&args, argc, argv);
-	printf("M : %d, N : %d, iter : %d\n", args.M, args.N, args.iter);
 
 	double *mat;
 	double (*A)[args.N];
