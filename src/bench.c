@@ -47,7 +47,7 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 				break;
 			case 'h':
 				printf("Usage : bench -n <matrix-size> -m <eigvec-nb> -i <iter-nb>\n");
-				printf("Or  	bench -i <iter-nb> -f <matrix-filename>\n");
+				printf("Or  	bench -i <iter-nb> -f <matrix-filename> -m <eigvec-nb>\n");
 				exit(0);
 			case '?':
 				if (optopt == 'n' || optopt == 'm' || optopt == 'i')
