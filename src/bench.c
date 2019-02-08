@@ -9,6 +9,8 @@
 
 #include <mpi.h>
 
+#define MPI_TERM_CODE -1
+
 struct arguments {
 	// Size of the A matrix
 	int N;
@@ -50,6 +52,7 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 				args->matrix_filename = optarg;
 				break;
 			case 'h':
+
 				printf("Usage : bench -n <matrix-size> -m <Krylov_size> -i <iter-nb> -e <eigvec-nb>\n");
 				printf("Or  	bench -i <iter-nb> -f <matrix-filename> -e <eigvec-nb>\n");
 				exit(0);
@@ -75,6 +78,129 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 		printf("Use -h option for help\n");
 		exit(-1);
 	}
+}
+
+void run_worker(int rank, int size, MPI_Comm comm) {
+	// C matrix coordinate to consider for computing C = A*B
+	// min[0] first line index
+	// max[0] last line index
+	// min[1] first column index
+	// max[1] last column index
+	
+	//               (  C global matrix   )
+	//               (                    )
+	//       min[0] -( - - +------+       )
+	//               (     |local |       )
+	//               (     |C     |       )
+	//       max[0] -( - - +------+       )
+	//               (                    )
+	//               (     |      |       )
+	//					min[1]   max[1]
+	int pcoord[2], min[2], max[2], psize[2];
+
+	// Total matrices size : A = MxN  -  B = NxP  -   C = MxP
+	// Local matrices size :
+	// 		A = (max[0] - min[0]) x N
+	// 		B = N x P
+	// 		C = (max[0] - min[0]) x (max[1] - min[1])
+	// Considered matrices for local computating
+	// 		A = (max[0] - min[0]) x N
+	// 		B = N x (max[1] - min[1])
+	// 		C = (max[0] - min[0]) x (max[1] - min[1])
+	
+	// M can be -1 meaning main process is over
+	int M, N, P;
+
+	// Get pcoord = coord of current proc in process grid
+	MPI_Cart_coords(comm, rank, 2, pcoord);
+
+	// Get psize = dimension of process grid
+	MPI_Cart_coords(comm, size-1, 2, psize);
+	psize[0]++;
+	psize[1]++;
+
+	MPI_Bcast(&M, 1, MPI_INT, 0, comm);
+
+	while(M != MPI_TERM_CODE) {
+
+		MPI_Bcast(&N, 1, MPI_INT, 0, comm);
+		MPI_Bcast(&P, 1, MPI_INT, 0, comm);
+
+		// Get min and max
+		compute_submatrix(psize, rank, M, P, min, max, comm);
+
+		double *A = malloc((max[0] - min[0] + 1)*N*sizeof(double));
+		double *B = malloc(N*P*sizeof(double));
+		double *C = malloc((max[0] - min[0] + 1)*(max[1] - min[1] + 1)*sizeof(double));
+
+		// Receive matrices
+		MPI_Bcast(B, N*P, MPI_DOUBLE, 0, comm);
+		MPI_Recv(A, (max[0] - min[0] + 1) * N, MPI_DOUBLE, 0, 0, comm, NULL);
+
+		// Compute C = A*B[:][min[1] , max[1]]
+		double result;
+		#pragma omp parallel for
+		for (int k = 0; k<=max[0] - min[0]; k++) {
+			for (int i = min[1]; i<=max[1];i++) {
+				result = 0;
+				#pragma omp parallel for reduction (+:result)
+				for (int j = 0; j<N;j++) {
+					result += A[k*N+j] * B[j*P+i];
+				}
+				C[k*(max[1] - min[1] + 1)+i - min[1]] = result;
+			}
+		}
+
+		MPI_Send(C, (max[0] - min[0] + 1)*(max[1]-min[1] + 1), MPI_DOUBLE, 0, 2, comm);
+
+		free(A);
+		free(B);
+		free(C);
+
+		MPI_Bcast(&M, 1, MPI_INT, 0, comm);
+	}
+}
+
+void run_main_process(struct arguments args, MPI_Comm comm) {
+	double *mat;
+	double (*A)[args.N];
+	double (*q)[args.N];
+
+	if (args.matrix_filename != NULL) {
+		int size[2];
+		read_mtx(args.matrix_filename, size, &mat);
+		if (size[0] != size[1]) {
+			fprintf(stderr, "Cannot handle non-square matrices.\n");
+			exit(-1);
+		}
+
+		args.N = size[0];
+		A = (double (*) []) mat;
+		q = (double (*) []) malloc(sizeof(double)*args.M*args.N);
+		init_q(args.N, args.M, q);
+
+	} else {
+		A = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
+		q = (double (*)[args.M]) malloc(sizeof(double)*args.M*args.N);
+		init(args.N, args.M, A, q);
+	}
+
+	struct timeval start;
+	gettimeofday(&start, NULL);
+
+	mis(args.N, args.M, A, q, args.iter, comm);
+
+	struct timeval end;
+	gettimeofday(&end, NULL);
+	double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
+		(double) (end.tv_sec - start.tv_sec);
+	printf("duration (s) : %f\n", duration);
+
+	free(A);
+	free(q);
+
+	int term_code = MPI_TERM_CODE;
+	MPI_Bcast(&term_code, 1, MPI_INT, 0, comm);
 }
 
 int main(int argc, char* argv[]) {
@@ -105,90 +231,13 @@ int main(int argc, char* argv[]) {
 	if (rank == 0) {
 		
 		struct arguments args;
-
 		parse_args(&args, argc, argv);
 
-		double *mat;
-		double (*A)[args.N];
-		double (*q)[args.N];
 
-		if (args.matrix_filename != NULL) {
-			int size[2];
-			read_mtx(args.matrix_filename, size, &mat);
-			if (size[0] != size[1]) {
-				fprintf(stderr, "Cannot handle non-square matrices.\n");
-				exit(-1);
-			}
-
-			args.N = size[0];
-			A = (double (*) []) mat;
-			q = (double (*) []) malloc(sizeof(double)*args.M*args.N);
-			init_q(args.N, args.M, q);
-
-		} else {
-			A = (double (*)[args.N]) malloc(sizeof(double)*args.N*args.N);
-			q = (double (*)[args.M]) malloc(sizeof(double)*args.M*args.N);
-			init(args.N, args.M, A, q);
-		}
-
-		struct timeval start;
-		gettimeofday(&start, NULL);
-
-		mis(args.N, args.M, A, q, args.iter, comm);
-
-		struct timeval end;
-		gettimeofday(&end, NULL);
-		double duration = (double) (end.tv_usec - start.tv_usec) / 1000000 +
-					 (double) (end.tv_sec - start.tv_sec);
-		printf("duration (s) : %f\n", duration);
-
-		free(A);
-		free(q);
-
-		MPI_Abort(MPI_COMM_WORLD, 0);
+		run_main_process(args, comm);
 	}
 	else {
-		int pcoord[2], min[2], max[2], psize[2];
-		int M, N, P;
-		MPI_Cart_coords(comm, rank, 2, pcoord);
-		MPI_Cart_coords(comm, size-1, 2, psize);
-		psize[0]++;
-		psize[1]++;
-
-		while(1) {
-			MPI_Recv(&M, 1, MPI_INT, 0, 0, comm, NULL);
-			MPI_Recv(&N, 1, MPI_INT, 0, 0, comm, NULL);
-			MPI_Recv(&P, 1, MPI_INT, 0, 0, comm, NULL);
-
-			compute_submatrix(psize, rank, M, P, min, max, comm);
-
-			double *A = malloc((max[0] - min[0] + 1)*N*sizeof(double));
-			double *B = malloc(N*P*sizeof(double));
-			double *C = malloc((max[0] - min[0] + 1)*(max[1] - min[1] + 1)*sizeof(double));
-
-			MPI_Recv(A, (max[0] - min[0] + 1) * N, MPI_DOUBLE, 0, 0, comm, NULL);
-			MPI_Recv(B, N*P, MPI_DOUBLE, 0, 1, comm, NULL);
-
-			double result;
-//			#pragma omp parallel for
-			for (int k = 0; k<=max[0] - min[0]; k++) {
-				for (int i = min[1]; i<=max[1];i++) {
-					result = 0;
-//					#pragma omp parallel for reduction (+:result)
-					for (int j = 0; j<N;j++) {
-						result += A[k*N+j] * B[j*P+i];
-					}
-					C[k*(max[1] - min[1] + 1)+i - min[1]] = result;
-				}
-			}
-
-			MPI_Send(C, (max[0] - min[0] + 1)*(max[1]-min[1] + 1), MPI_DOUBLE, 0, 2, comm);
-
-			free(A);
-			free(B);
-			free(C);
-		}
-
+		run_worker(rank, size, comm);
 	}
 
 	MPI_Finalize();

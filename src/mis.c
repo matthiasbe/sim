@@ -84,15 +84,15 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 	psize[0]++;
 	psize[1]++;
 
+	MPI_Bcast(&M, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&N, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&P, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&(B[0][0]), N*P, MPI_DOUBLE, 0, comm);
+
 	for(int i = 1; i<size; i++) {
 		compute_submatrix(psize, i, M, P, min, max, comm);
-
-		MPI_Send(&M, 1, MPI_INT, i, 0, comm);
-		MPI_Send(&N, 1, MPI_INT, i, 0, comm);
-		MPI_Send(&P, 1, MPI_INT, i, 0, comm);
 	
 		MPI_Send(&(A[min[0]][0]), (max[0] - min[0] + 1) * N, MPI_DOUBLE, i, 0, comm);
-		MPI_Send(&(B[0][0]), N*P, MPI_DOUBLE, i, 1, comm);
 	}
 
 	compute_submatrix(psize, 0, M, P, min, max, comm);
