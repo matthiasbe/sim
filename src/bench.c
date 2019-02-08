@@ -9,6 +9,8 @@
 
 #include <mpi.h>
 
+#define MPI_TERM_CODE -1
+
 struct arguments {
 	// Size of the A matrix
 	int N;
@@ -140,7 +142,8 @@ int main(int argc, char* argv[]) {
 		free(A);
 		free(q);
 
-		MPI_Abort(MPI_COMM_WORLD, 0);
+		int term_code = MPI_TERM_CODE;
+		MPI_Bcast(&term_code, 1, MPI_INT, 0, comm);
 	}
 	else {
 		int pcoord[2], min[2], max[2], psize[2];
@@ -150,10 +153,12 @@ int main(int argc, char* argv[]) {
 		psize[0]++;
 		psize[1]++;
 
-		while(1) {
-			MPI_Recv(&M, 1, MPI_INT, 0, 0, comm, NULL);
-			MPI_Recv(&N, 1, MPI_INT, 0, 0, comm, NULL);
-			MPI_Recv(&P, 1, MPI_INT, 0, 0, comm, NULL);
+		MPI_Bcast(&M, 1, MPI_INT, 0, comm);
+
+		while(M != MPI_TERM_CODE) {
+			
+			MPI_Bcast(&N, 1, MPI_INT, 0, comm);
+			MPI_Bcast(&P, 1, MPI_INT, 0, comm);
 
 			compute_submatrix(psize, rank, M, P, min, max, comm);
 
@@ -161,8 +166,8 @@ int main(int argc, char* argv[]) {
 			double *B = malloc(N*P*sizeof(double));
 			double *C = malloc((max[0] - min[0] + 1)*(max[1] - min[1] + 1)*sizeof(double));
 
+			MPI_Bcast(B, N*P, MPI_DOUBLE, 0, comm);
 			MPI_Recv(A, (max[0] - min[0] + 1) * N, MPI_DOUBLE, 0, 0, comm, NULL);
-			MPI_Recv(B, N*P, MPI_DOUBLE, 0, 1, comm, NULL);
 
 			double result;
 //			#pragma omp parallel for
@@ -182,6 +187,8 @@ int main(int argc, char* argv[]) {
 			free(A);
 			free(B);
 			free(C);
+
+			MPI_Bcast(&M, 1, MPI_INT, 0, comm);
 		}
 
 	}
