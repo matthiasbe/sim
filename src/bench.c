@@ -92,7 +92,7 @@ void run_worker(int rank, int size, MPI_Comm comm) {
 	int pcoord[2], min[2], max[2], psize[2];
 
 	// Total matrices size : A = MxN  -  B = NxP  -   C = MxP
-	// Received matrices size :
+	// Local matrices size :
 	// 		A = (max[0] - min[0]) x N
 	// 		B = N x P
 	// 		C = (max[0] - min[0]) x (max[1] - min[1])
@@ -126,9 +126,11 @@ void run_worker(int rank, int size, MPI_Comm comm) {
 		double *B = malloc(N*P*sizeof(double));
 		double *C = malloc((max[0] - min[0] + 1)*(max[1] - min[1] + 1)*sizeof(double));
 
+		// Receive matrices
 		MPI_Bcast(B, N*P, MPI_DOUBLE, 0, comm);
 		MPI_Recv(A, (max[0] - min[0] + 1) * N, MPI_DOUBLE, 0, 0, comm, NULL);
 
+		// Compute C = A*B[:][min[1] , max[1]]
 		double result;
 		#pragma omp parallel for
 		for (int k = 0; k<=max[0] - min[0]; k++) {
@@ -222,8 +224,8 @@ int main(int argc, char* argv[]) {
 	if (rank == 0) {
 		
 		struct arguments args;
-
 		parse_args(&args, argc, argv);
+
 		run_main_process(args, comm);
 	}
 	else {
