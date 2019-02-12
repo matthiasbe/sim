@@ -10,9 +10,7 @@
 #include <sys/time.h>
 #include <lapacke.h>
 
-void estimate_error(){
-
-}
+#define CSV_FILENAME "output.csv"
 
 void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
 	#pragma omp parallel for
@@ -235,34 +233,40 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
     double accuracies[M];
     int return_code;
-    // printf("=====A=====\n");
-    // print_matrix(N, N, A);
-    // printf("===========\n");
-	// A^k*v serie calculation
+
+	struct timeval start, curr;
+	gettimeofday(&start, NULL);
 	
+	// This limit iterations to 150 in case only a precision is given
 	if (iter == 0) iter = 150;
+
+	FILE* fp = fopen(CSV_FILENAME, "w+");
+	fprintf(fp, "iteration, eigindex, value, type\n");
+	fprintf(fp, "0,N/A,%d,t\n", 0);
 	
     for(int n = 0; n < iter; n++) {
-    	printf("===Accuracy===\n");
-    	measure_accuracy(N, M, q, A, accuracies, comm);
-        print_matrix(1, M, accuracies);
-        printf("==============\n");
-     //    printf("===q===\n");
-     //    print_matrix(N, M, q);
-     //    printf("=======\n");
-	 	
-		double min_accuracy = accuracies[0];
-		
-		for (int i = 1; i < M; i++) {
-			if (accuracies[i] < min_accuracy)
-				min_accuracy = accuracies[i];
-		}
 
-		if (1 - min_accuracy < pow(10,-precision)) {
-			printf("**** accuracy %d reached with ****\n", precision);
-			printf("minimum eigenvector precision : %f\n", min_accuracy);
-			printf("Number of iteration : %d\n", n);
-			break;
+//    	printf("===Accuracy===\n");
+    	measure_accuracy(N, M, q, A, accuracies, comm);
+//      print_matrix(1, M, accuracies);
+//      printf("==============\n");
+	 	
+		if (precision > 0) {
+			double min_accuracy = accuracies[0];
+			fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
+			
+			for (int i = 1; i < M; i++) {
+				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[1]);
+				if (accuracies[i] < min_accuracy)
+					min_accuracy = accuracies[i];
+			}
+
+			if (1 - min_accuracy < pow(10,-precision)) {
+				printf("**** accuracy %d reached with ****\n", precision);
+				printf("minimum eigenvector precision : %f\n", min_accuracy);
+				printf("Number of iteration : %d\n", n);
+				break;
+			}
 		}
 
 		// V = A * Q
@@ -287,44 +291,25 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
         return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, M, 1, M, (double *) Q, M, tau);
         return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) wr, (double *) wi, (double *) Q, M);
-        // printf("=====Q======\n");
-        // print_matrix(M, M, Q);
-        // printf("=============\n");
 
-        // printf("=====B======\n");
-        // print_matrix(M, M, B);
-        // printf("=============\n");
-        // printf("info : %d\n", return_code);
-        ///////////////////////////////
-
-        //Schur factorization B = Yt R Y
-        // gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
-        // gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
-        // gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
-        // gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
-
-        // gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
-        // gsl_vector_view eigenvalues_real = gsl_vector_complex_real(eigenvalues);
-        // gsl_vector_view eigenvalues_imag = gsl_vector_complex_imag(eigenvalues);
         for (int i = 0; i < M; ++i)
         {
-        	printf("vp : %f + %fi\n", wr[i], wi[i]);
+			fprintf(fp,"%d,%d,%f,vr\n", n+1, i, wr[i]);
+			fprintf(fp,"%d,%d,%f,vi\n", n+1, i, wi[i]);
+//        	printf("vp : %f + %fi\n", wr[i], wi[i]);
         }
-        printf("\n");
+//        printf("\n");
 
 		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, Q, q, comm);
 
-        // gsl_vector_complex_free(eigenvalues);
-        // gsl_matrix_free(gsl_Y);
-        // gsl_eigen_nonsymm_free(ws);
+		gettimeofday(&curr, NULL);
+		double duration = (double) (curr.tv_usec - start.tv_usec) / 1000000 +
+		         (double) (curr.tv_sec - start.tv_sec);
+		fprintf(fp, "%d,N/A,%f,t\n", n+1, duration);
 
-        // #pragma omp parallel for
-        // for(int i = 0; i<M; i++) {
-        //     for(int j = 0; j<N; j++) {
-        //         q[i][j] = Z[i][j];
-        //     }
-        // }
+		if (n % (iter / 20) == 0)
+			printf("%2d%% (%d iterations) in %.3f seconds\n", (n*100)/iter, n, duration);
     }
 }
 
