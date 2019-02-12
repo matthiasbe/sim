@@ -8,7 +8,6 @@
 #include "../src/mis.h"
 #include <omp.h>
 #include <sys/time.h>
-#include <gsl/gsl_eigen.h>
 #include <lapacke.h>
 
 void estimate_error(){
@@ -64,7 +63,22 @@ double scalar_product(int N, double u[N], double v[N]) {
 	return result;
 }
 
+// C matrix coordinate to consider for computing C = A*B
+// min[0] first line index
+// max[0] last line index
+// min[1] first column index
+// max[1] last column index
+//               (  C global matrix   )
+//               (                    )
+//       min[0] -( - - +------+       )
+//               (     |local |       )
+//               (     |C     |       )
+//       max[0] -( - - +------+       )
+//               (                    )
+//               (     |      |       )
+//					min[1]   max[1]
 void compute_submatrix(int psize[2], int rank, int N, int M, int min[2], int max[2], MPI_Comm comm) {
+
 	int coords[2];
 	MPI_Cart_coords(comm, rank, 2, coords);
 	min[0] = coords[0] * N / psize[0];
@@ -211,7 +225,7 @@ void init_q(int N, int M, double q[M][N]){
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) {
+void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, MPI_Comm comm) {
 	
 	// Temp vector
     double Z[N][M];
@@ -225,6 +239,9 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
     // print_matrix(N, N, A);
     // printf("===========\n");
 	// A^k*v serie calculation
+	
+	if (iter == 0) iter = 150;
+	
     for(int n = 0; n < iter; n++) {
     	printf("===Accuracy===\n");
     	measure_accuracy(N, M, q, A, accuracies, comm);
@@ -233,6 +250,20 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
      //    printf("===q===\n");
      //    print_matrix(N, M, q);
      //    printf("=======\n");
+	 	
+		double min_accuracy = accuracies[0];
+		
+		for (int i = 1; i < M; i++) {
+			if (accuracies[i] < min_accuracy)
+				min_accuracy = accuracies[i];
+		}
+
+		if (1 - min_accuracy < pow(10,-precision)) {
+			printf("**** accuracy %d reached with ****\n", precision);
+			printf("minimum eigenvector precision : %f\n", min_accuracy);
+			printf("Number of iteration : %d\n", n);
+			break;
+		}
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z, comm);

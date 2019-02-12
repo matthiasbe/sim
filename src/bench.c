@@ -22,6 +22,8 @@ struct arguments {
 	int iter;
 	// A matrix passed as a file
 	char* matrix_filename;
+	// Precision exposant
+	int p;
 };
 
 void parse_args(struct arguments* args, int argc, char* argv[]) {
@@ -30,10 +32,11 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 	args->N = 0;
 	args->M = 0;
 	args->e = 0;
+	args->p = 0;
 	args->iter = 0;
 	args->matrix_filename = NULL;
 
-	while ((c = getopt (argc, argv, "e:n:m:i:f:h")) != -1) {
+	while ((c = getopt (argc, argv, "p:e:n:m:i:f:h")) != -1) {
 		switch (c)
 		{
 			case 'n':
@@ -48,16 +51,32 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 			case 'i':
 				args->iter = atoi(optarg);
 				break;
+			case 'p':
+				args->p = atoi(optarg);
+				if (args->p > 16 || args->p < 1) {
+					printf("Precision must be in [1,16]\n");
+					exit(-1);
+				}
+				break;
 			case 'f':
 				args->matrix_filename = optarg;
 				break;
 			case 'h':
 
-				printf("Usage : bench -n <matrix-size> -m <Krylov_size> -i <iter-nb> -e <eigvec-nb>\n");
-				printf("Or  	bench -i <iter-nb> -f <matrix-filename> -e <eigvec-nb>\n");
+				printf("Usage : ./bench [-i <iter-nb> | -p <precision-exp>]\n");
+				printf(" 			  -e <eigvec-nb> \n");
+				printf("			  [-n <matrix-size> |  -f <matrix-filename>] \n");
+				printf("			  -m <Krylov-size>\n");
+				printf("	-i <iter-nb> :  		Number of iteration of the method\n");
+				printf("	-p <precision-exp> : 	Base 10 exposant for minimum precision of the eigenvectors (100 iterations max)\n");
+				printf("	-e <eigvec-nb> : 		Number of desired eigeinvectors\n");
+				printf("	-n <matrix-size> : 		Generates a n x n random matrix as input\n");
+				printf("	-f <matrix-filename> : 	Use a .mtx matrix as input\n");
+				printf("	-m <Krylov-size> : 		Size of the desired Krylov space\n");
+
 				exit(0);
 			case '?':
-				if (optopt == 'n' || optopt == 'm' || optopt == 'i')
+				if (optopt == 'n' || optopt == 'm' || optopt == 'i' || optopt == 'p' || optopt == 'e' || optopt == 'f')
 					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 				else if (isprint (optopt))
 					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -72,7 +91,8 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 		}
 	}
 
-	if (args->iter == 0 || args->M == 0 ||
+	if (args->M == 0 || args->e == 0 ||
+			((args->iter == NULL) == (args->p == 0))||
 			((args->matrix_filename == NULL) == (args->N == 0))) {
 		fprintf(stderr, "bad arguments\n");
 		printf("Use -h option for help\n");
@@ -188,7 +208,7 @@ void run_main_process(struct arguments args, MPI_Comm comm) {
 	struct timeval start;
 	gettimeofday(&start, NULL);
 
-	mis(args.N, args.M, A, q, args.iter, comm);
+	mis(args.N, args.M, A, q, args.iter, args.p, comm);
 
 	struct timeval end;
 	gettimeofday(&end, NULL);
