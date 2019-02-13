@@ -11,7 +11,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 project(mis)
 
 find_package(OpenMP COMPONENTS C REQUIRED)
-find_package(GSL REQUIRED)
 
 set(LAPACKE_DIR /usr/include/lapacke)
 find_package(LAPACKE REQUIRED)
@@ -20,20 +19,15 @@ find_package(MPI REQUIRED)
 set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 # Add flag for profile tool gprof
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lm")
 
 #add_executable(tests test/test.c ${DEPENDENCIES})
 add_executable(bench src/bench.c ${DEPENDENCIES})
 
-# Include GSL library
-#target_link_libraries(tests m ${GSL_LIBRARIES})
-#target_include_directories(tests PUBLIC ${GSL_INCLUDE_DIRS})
 # target_link_libraries(tests m ${LAPACKE_LIBRARIES})
 # target_include_directories(tests PUBLIC ${LAPACKE_INCLUDE_DIRS})
 
-target_link_libraries(bench m ${GSL_LIBRARIES})
 target_link_libraries(bench ${LAPACKE_LIBRARIES})
-target_include_directories(bench PUBLIC ${GSL_INCLUDE_DIRS})
 target_include_directories(bench PUBLIC ${LAPACKE_INCLUDE_DIRS})
 
 # Include MPI library
