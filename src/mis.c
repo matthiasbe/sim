@@ -10,8 +10,23 @@
 #include <sys/time.h>
 #include <gsl/gsl_eigen.h>
 #include <lapacke.h>
+#include <mpi.h>
+#include <float.h>
 
-void estimate_error(){
+void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_real[M], double errors[M]){
+
+	for (int i = 0; i < M; ++i)
+	{
+		errors[i] = 0;
+	}
+
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			errors[j] += pow(Z[i][j] - Q[i][j]*eigen_real[j], 2);
+		}
+	}
 
 }
 
@@ -25,8 +40,6 @@ void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
 		}
 	}
 }
-
-#include <mpi.h>
 
 void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accuracies[M], MPI_Comm comm){
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
@@ -180,7 +193,7 @@ void orthonormalize(int N, int M, double A[N][M]) {
 void print_matrix(int N, int M, double A[N][M]) {
 	for (int i = 0; i<N ; i++) {
 		for (int j = 0; j<M; j++) {
-			printf("[%f]",A[i][j]);
+			printf("[%e]",A[i][j]);
 		}
 		printf("\n");
 	}
@@ -192,8 +205,7 @@ void init(int N, int M, double A[N][N], double q[N][M]) {
 	{
 		for (int j = 0; j < N; ++j)
 		{
-			A[i][j] = 0;
-			A[i][i] = 1 + i;
+			A[i][i] = (double) rand() / RAND_MAX;
 			if(j < M)
 				q[i][j] = (double) rand() / RAND_MAX;
 		}
@@ -218,6 +230,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
     double B[M][M];
     double H[M][M];
     double Zt[M][N];
+    double eigen_real[M];
 
     double accuracies[M];
     int return_code;
@@ -226,16 +239,19 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
     // printf("===========\n");
 	// A^k*v serie calculation
     for(int n = 0; n < iter; n++) {
-    	printf("===Accuracy===\n");
-    	measure_accuracy(N, M, q, A, accuracies, comm);
-        print_matrix(1, M, accuracies);
-        printf("==============\n");
      //    printf("===q===\n");
      //    print_matrix(N, M, q);
      //    printf("=======\n");
 
 		// V = A * Q
         matrix_product(N, N, M, A, q, Z, comm);
+
+        printf("===Accuracy===\n");
+    	// measure_accuracy(N, M, q, A, accuracies, comm);
+    	estimate_errors(N, M, q, Z, eigen_real, accuracies);
+        print_matrix(1, M, accuracies);
+        printf("Precision : %e\n", FLT_EPSILON);
+        printf("==============\n");
 
 		// QR decomposition V = Z R
 		transpose(N, M, Z, Zt);
@@ -245,17 +261,16 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
 		// B = Zt A Z
         projection(N, M, A, Z, B, comm);
 
-        //Factorisation de Schur LAPACK
+        //Factorisation de Schur LAPACK B = Yt R Y
         double *tau = (double *) malloc(sizeof(double)*(M-1));
         return_code = LAPACKE_dgehrd(LAPACK_ROW_MAJOR, M, 1, M, (double *) B, M, tau);
 
         double (*Q)[M] = (double (*)[M]) malloc(sizeof(double)*M*M);
-        double *wr = (double *) malloc(sizeof(double)*M);
         double *wi = (double *) malloc(sizeof(double)*M);
         copy_matrix(M, M, B, Q);
 
         return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, M, 1, M, (double *) Q, M, tau);
-        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) wr, (double *) wi, (double *) Q, M);
+        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) eigen_real, (double *) wi, (double *) Q, M);
         // printf("=====Q======\n");
         // print_matrix(M, M, Q);
         // printf("=============\n");
@@ -266,18 +281,9 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, MPI_Comm comm) 
         // printf("info : %d\n", return_code);
         ///////////////////////////////
 
-        //Schur factorization B = Yt R Y
-        // gsl_matrix_view gsl_B = gsl_matrix_view_array((double *)B, M, M);
-        // gsl_matrix* gsl_Y = gsl_matrix_alloc(M, M);
-        // gsl_vector_complex* eigenvalues = gsl_vector_complex_alloc(M);
-        // gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(M);
-
-        // gsl_eigen_nonsymm_Z(&(gsl_B.matrix), eigenvalues, gsl_Y, ws);
-        // gsl_vector_view eigenvalues_real = gsl_vector_complex_real(eigenvalues);
-        // gsl_vector_view eigenvalues_imag = gsl_vector_complex_imag(eigenvalues);
         for (int i = 0; i < M; ++i)
         {
-        	printf("vp : %f + %fi\n", wr[i], wi[i]);
+        	printf("vp : %f + %fi\n", eigen_real[i], wi[i]);
         }
         printf("\n");
 
