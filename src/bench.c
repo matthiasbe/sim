@@ -6,6 +6,7 @@
 #include "mis.h"
 #include "read_file.h"
 #include <math.h>
+#include <getopt.h>
 
 #include <mpi.h>
 

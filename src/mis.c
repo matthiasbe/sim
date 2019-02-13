@@ -8,7 +8,7 @@
 #include "../src/mis.h"
 #include <omp.h>
 #include <sys/time.h>
-#include <lapacke.h>
+#include <mkl_lapacke.h>
 
 #define CSV_FILENAME "output.csv"
 
@@ -250,10 +250,11 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
     	measure_accuracy(N, M, q, A, accuracies, comm);
 //      print_matrix(1, M, accuracies);
 //      printf("==============\n");
+
+	fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
 	 	
 		if (precision > 0) {
 			double min_accuracy = accuracies[0];
-			fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
 			
 			for (int i = 1; i < M; i++) {
 				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[1]);

@@ -19,19 +19,14 @@ find_package(MPI REQUIRED)
 set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 # Add flag for profile tool gprof
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lm")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lm -std=c99 ")
 
 #add_executable(tests test/test.c ${DEPENDENCIES})
 add_executable(bench src/bench.c ${DEPENDENCIES})
 
-# target_link_libraries(tests m ${LAPACKE_LIBRARIES})
-# target_include_directories(tests PUBLIC ${LAPACKE_INCLUDE_DIRS})
-
 target_link_libraries(bench ${LAPACKE_LIBRARIES})
-target_include_directories(bench PUBLIC ${LAPACKE_INCLUDE_DIRS})
+target_include_directories(bench PUBLIC ${LAPACKE_INCLUDES})
 
 # Include MPI library
-#target_include_directories(tests PUBLIC ${MPI_C_INCLUDE_PATH})
-#target_link_libraries(tests ${MPI_C_LIBRARIES})
-target_include_directories(bench PUBLIC ${MPI_C_INCLUDE_PATH})
 target_link_libraries(bench ${MPI_C_LIBRARIES})
+target_include_directories(bench PUBLIC ${MPI_C_INCLUDE_PATH})
