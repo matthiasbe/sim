@@ -22,7 +22,7 @@ find_package(MPI REQUIRED)
 set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 
 # Add flag for profile tool gprof
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lm -std=c99 ")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lm -std=c99 ")
 
 #add_executable(tests test/test.c ${DEPENDENCIES})
 add_executable(bench src/bench.c ${DEPENDENCIES})
