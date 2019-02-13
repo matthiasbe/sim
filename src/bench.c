@@ -93,7 +93,7 @@ void parse_args(struct arguments* args, int argc, char* argv[]) {
 	}
 
 	if (args->M == 0 || args->e == 0 ||
-			((args->iter == NULL) == (args->p == 0))||
+			((args->iter == 0) == (args->p == 0))||
 			((args->matrix_filename == NULL) == (args->N == 0))) {
 		fprintf(stderr, "bad arguments\n");
 		printf("Use -h option for help\n");

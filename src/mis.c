@@ -8,9 +8,29 @@
 #include "../src/mis.h"
 #include <omp.h>
 #include <sys/time.h>
-#include <mkl_lapacke.h>
+#include <lapacke.h>
+#include <mpi.h>
+#include <float.h>
 
 #define CSV_FILENAME "output.csv"
+
+void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_real[M], double errors[M]){
+
+	for (int i = 0; i < M; ++i)
+	{
+		errors[i] = 0;
+	}
+
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			errors[j] += pow(Z[i][j] - Q[i][j]*eigen_real[j], 2);
+		}
+	}
+
+}
+
 
 void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
 	#pragma omp parallel for
@@ -22,8 +42,6 @@ void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
 		}
 	}
 }
-
-#include <mpi.h>
 
 void measure_accuracy(int N, int M, double q[N][M], double A[N][N], double accuracies[M], MPI_Comm comm){
 	double (*transposed)[N] = (double (*)[N]) malloc(sizeof(double)*M*N);
@@ -192,7 +210,7 @@ void orthonormalize(int N, int M, double A[N][M]) {
 void print_matrix(int N, int M, double A[N][M]) {
 	for (int i = 0; i<N ; i++) {
 		for (int j = 0; j<M; j++) {
-			printf("[%f]",A[i][j]);
+			printf("[%e]",A[i][j]);
 		}
 		printf("\n");
 	}
@@ -204,8 +222,7 @@ void init(int N, int M, double A[N][N], double q[N][M]) {
 	{
 		for (int j = 0; j < N; ++j)
 		{
-			A[i][j] = 0;
-			A[i][i] = 1 + i;
+			A[i][i] = (double) rand() / RAND_MAX;
 			if(j < M)
 				q[i][j] = (double) rand() / RAND_MAX;
 		}
@@ -230,6 +247,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
     double B[M][M];
     double H[M][M];
     double Zt[M][N];
+    double eigen_real[M];
 
     double accuracies[M];
     int return_code;
@@ -246,11 +264,12 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	
     for(int n = 0; n < iter; n++) {
 
-//    	printf("===Accuracy===\n");
-    	measure_accuracy(N, M, q, A, accuracies, comm);
-//      print_matrix(1, M, accuracies);
-//      printf("==============\n");
 
+    	// V = A * Q
+        matrix_product(N, N, M, A, q, Z, comm);
+
+    	// measure_accuracy(N, M, q, A, accuracies, comm);
+    	estimate_errors(N, M, q, Z, eigen_real, accuracies);
 	fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
 	 	
 		if (precision > 0) {
@@ -270,9 +289,6 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 			}
 		}
 
-		// V = A * Q
-        matrix_product(N, N, M, A, q, Z, comm);
-
 		// QR decomposition V = Z R
 		transpose(N, M, Z, Zt);
         orthonormalize(M, N, Zt);
@@ -281,25 +297,22 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		// B = Zt A Z
         projection(N, M, A, Z, B, comm);
 
-        //Factorisation de Schur LAPACK
+        //Factorisation de Schur LAPACK B = Yt R Y
         double *tau = (double *) malloc(sizeof(double)*(M-1));
         return_code = LAPACKE_dgehrd(LAPACK_ROW_MAJOR, M, 1, M, (double *) B, M, tau);
 
         double (*Q)[M] = (double (*)[M]) malloc(sizeof(double)*M*M);
-        double *wr = (double *) malloc(sizeof(double)*M);
         double *wi = (double *) malloc(sizeof(double)*M);
         copy_matrix(M, M, B, Q);
 
         return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, M, 1, M, (double *) Q, M, tau);
-        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) wr, (double *) wi, (double *) Q, M);
+        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) eigen_real, (double *) wi, (double *) Q, M);
 
         for (int i = 0; i < M; ++i)
         {
-			fprintf(fp,"%d,%d,%f,vr\n", n+1, i, wr[i]);
+			fprintf(fp,"%d,%d,%f,vr\n", n+1, i, eigen_real[i]);
 			fprintf(fp,"%d,%d,%f,vi\n", n+1, i, wi[i]);
-//        	printf("vp : %f + %fi\n", wr[i], wi[i]);
         }
-//        printf("\n");
 
 		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, Q, q, comm);
