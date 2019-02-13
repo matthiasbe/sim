@@ -25,7 +25,7 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lm -std=c99 ")
 add_executable(bench src/bench.c ${DEPENDENCIES})
 
 target_link_libraries(bench ${LAPACKE_LIBRARIES})
-target_include_directories(bench PUBLIC ${LAPACKE_INCLUDES})
+target_include_directories(bench PUBLIC ${LAPACKE_INCLUDE_DIRS})
 
 # Include MPI library
 target_link_libraries(bench ${MPI_C_LIBRARIES})

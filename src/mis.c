@@ -20,7 +20,7 @@ void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_
 	{
 		errors[i] = 0;
 	}
-
+	#pragma omp parallel for simd
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < M; ++j)
@@ -33,7 +33,7 @@ void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_
 
 
 void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	for (int i = 0; i < M; ++i)
 	{
 		for (int j = 0; j < N; ++j)
@@ -65,7 +65,7 @@ double scalar_product(int N, double u[N], double v[N]) {
 	double result = 0;
 	
 	int i;
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	for (i = 0; i < N; i++) {
 		w[i] = u[i]*v[i];
 	}
@@ -157,7 +157,7 @@ void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double 
 }
 
 void transpose(int M, int N, double A[M][N], double T[N][M]){
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < M; ++j)
