@@ -1,0 +1,36 @@
+/gpfshome/mds/grptraining/training12/.bash_custom: line 103: /gpfslocal/pub/pdi-training-env.bash: Aucun fichier ou dossier de ce type
+(load) intel version 13.0.1
+Using intel compiler to configure openmpi wrappers...
+(load) openmpi version 1.8.1_gnu44_tm_CentO-6.7
+(load) mkl version 11.0
+--------------------------------------------------------------------------
+The following command line option and corresponding MCA parameter have
+been deprecated and replaced as follows:
+
+  Command line option:
+    Deprecated:  --bind-to-socket
+    Replacement: --bind-to socket
+
+  Equivalent MCA parameter:
+    Deprecated:  hwloc_base_bind_to_socket
+    Replacement: hwloc_base_binding_policy=socket
+
+The deprecated forms *will* disappear in a future version of Open MPI.
+Please update to the new syntax.
+--------------------------------------------------------------------------
+[poincare062-adm:12916] MCW rank 0 bound to socket 0[core 0[hwt 0]], socket 0[core 1[hwt 0]], socket 0[core 2[hwt 0]], socket 0[core 3[hwt 0]], socket 0[core 4[hwt 0]], socket 0[core 5[hwt 0]], socket 0[core 6[hwt 0]], socket 0[core 7[hwt 0]]: [B/B/B/B/B/B/B/B][./././././././.]
+--------------------------------------------------------------------------
+The following command line option and corresponding MCA parameter have
+been deprecated and replaced as follows:
+
+  Command line option:
+    Deprecated:  --bind-to-socket
+    Replacement: --bind-to socket
+
+  Equivalent MCA parameter:
+    Deprecated:  hwloc_base_bind_to_socket
+    Replacement: hwloc_base_binding_policy=socket
+
+The deprecated forms *will* disappear in a future version of Open MPI.
+Please update to the new syntax.
+--------------------------------------------------------------------------

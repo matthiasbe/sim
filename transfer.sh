@@ -1,5 +1,5 @@
-SIM_DIR="../sim3"
-SIM_ID="MIS_BG.699479"
+SIM_DIR=$1
+SIM_ID="MIS_BG"
 
 mkdir $SIM_DIR
 scp 	poincare:/gpfs1l/gpfshome/mds/grptraining/training12/sim/$SIM_ID.{err,log}\

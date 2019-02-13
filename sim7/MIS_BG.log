@@ -1,0 +1,35 @@
+--------------------------------------------------------------------------
+A deprecated MCA variable value was specified in the environment or
+on the command line.  Deprecated MCA variables should be avoided;
+they may disappear in future releases.
+
+  Deprecated variable: rmaps_base_schedule_policy
+  New variable:        rmaps_base_mapping_policy
+--------------------------------------------------------------------------
+detected matrix : 1473 x 1473
+ 0% (0 iterations) in 1.811 seconds
+ 4% (2 iterations) in 4.144 seconds
+ 8% (4 iterations) in 6.908 seconds
+12% (6 iterations) in 9.237 seconds
+16% (8 iterations) in 11.506 seconds
+20% (10 iterations) in 13.855 seconds
+24% (12 iterations) in 16.169 seconds
+28% (14 iterations) in 18.554 seconds
+32% (16 iterations) in 20.900 seconds
+36% (18 iterations) in 23.311 seconds
+40% (20 iterations) in 25.814 seconds
+44% (22 iterations) in 28.473 seconds
+48% (24 iterations) in 30.775 seconds
+52% (26 iterations) in 33.302 seconds
+56% (28 iterations) in 35.662 seconds
+60% (30 iterations) in 37.893 seconds
+64% (32 iterations) in 40.203 seconds
+68% (34 iterations) in 42.762 seconds
+72% (36 iterations) in 45.317 seconds
+76% (38 iterations) in 47.672 seconds
+80% (40 iterations) in 50.140 seconds
+84% (42 iterations) in 52.604 seconds
+88% (44 iterations) in 55.228 seconds
+92% (46 iterations) in 57.745 seconds
+96% (48 iterations) in 60.502 seconds
+duration (s) : 61.511496
