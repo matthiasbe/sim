@@ -1,9 +1,12 @@
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 cmake_minimum_required (VERSION 2.6)
 
 set(SRC_DIR src)
 set(TEST_DIR test)
 set(BIN_DIR build)
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 set(DEPENDENCIES ${SRC_DIR}/mis.c ${SRC_DIR}/read_file.c)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
