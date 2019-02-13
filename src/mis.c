@@ -300,20 +300,20 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
     	// measure_accuracy(N, M, q, A, accuracies, comm);
     	estimate_errors(N, M, q, Z, eigen_real, accuracies);
-	fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
+		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
 	 	
 		if (precision > 0) {
-			double min_accuracy = accuracies[0];
+			double max_accuracy = accuracies[0];
 			
 			for (int i = 1; i < M; i++) {
 				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[1]);
-				if (accuracies[i] < min_accuracy)
-					min_accuracy = accuracies[i];
+				if (accuracies[i] > max_accuracy)
+					max_accuracy = accuracies[i];
 			}
 
-			if (1 - min_accuracy < pow(10,-precision)) {
+			if (max_accuracy < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %f\n", min_accuracy);
+				printf("minimum eigenvector precision : %f\n", max_accuracy);
 				printf("Number of iteration : %d\n", n);
 				break;
 			}
