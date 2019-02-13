@@ -31,6 +31,27 @@ void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_
 
 }
 
+void condition_matrix(int N, int M, double mat[N][M]){
+	double max = abs(mat[0][0]);
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			if(abs(mat[i][j]) > max)
+				max = abs(mat[i][j]);
+		}
+	}
+
+	#pragma omp parallel for simd
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			mat[i][j]/=max;
+		}
+	}
+}
+
 
 void copy_matrix(int M, int N, double mat[M][N], double new[M][N]){
 	#pragma omp parallel for simd
@@ -241,7 +262,16 @@ void init_q(int N, int M, double q[M][N]){
 
 // Do the Simultaneous Iterations Methods
 void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, MPI_Comm comm) {
-	
+	condition_matrix(N, N, A);
+	double norm = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < N; ++j)
+		{
+			norm += A[i][j];
+		}
+	}
+	printf("Norme : %lf\n", norm);
 	// Temp vector
     double Z[N][M];
     double B[M][M];
