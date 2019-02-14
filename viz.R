@@ -1,11 +1,11 @@
 library("dplyr")
 library("ggplot2")
 
-data = read.csv("cours/mpna/projet/build/output.csv") %>% 
+data = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/build/output.csv") %>% 
   as_tibble() %>%
   mutate(eigindex = as.factor(as.character(eigindex)))
 
 data %>%
   filter(iteration > 0) %>%
-  filter(type == " A") %>%
-  ggplot(aes(x = iteration, y = value, color = eigindex)) + geom_path() + geom_jitter()
+  filter(type == "A") %>%
+  ggplot(aes(x = iteration, y = value, color = eigindex)) + geom_path() + geom_jitter() + scale_y_log10()

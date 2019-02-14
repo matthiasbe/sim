@@ -14,6 +14,16 @@
 
 #define CSV_FILENAME "output.csv"
 
+void swap_columns(int i, int j, int N, int M, double mat[N][M]){
+	if(i != j){
+		int temp;
+		for (int idx = 0; idx < N; ++idx)
+		{
+			temp = mat[idx][i]; mat[idx][i] = mat[idx][j]; mat[idx][j] = temp;
+		}
+	}
+}
+
 int compare_doubles (const void *a, const void *b)
 {
   const double *da = (const double *) a;
@@ -22,16 +32,16 @@ int compare_doubles (const void *a, const void *b)
   return (*da > *db) - (*da < *db);
 }
 
-void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_real[M], double errors[M]){
+void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_real[M], double errors[M], int lock_idx){
 
-	for (int i = 0; i < M; ++i)
+	for (int i = lock_idx; i < M; ++i)
 	{
 		errors[i] = 0;
 	}
-	#pragma omp parallel for simd
+	// #pragma omp parallel for simd
 	for (int i = 0; i < N; ++i)
 	{
-		for (int j = 0; j < M; ++j)
+		for (int j = lock_idx; j < M; ++j)
 		{
 			errors[j] += pow(Z[i][j] - Q[i][j]*eigen_real[j], 2);
 		}
@@ -39,7 +49,7 @@ void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_
 
 }
 
-void condition_matrix(int N, int M, double mat[N][M]){
+double condition_matrix(int N, int M, double mat[N][M]){
 	double max = abs(mat[0][0]);
 	for (int i = 0; i < N; ++i)
 	{
@@ -58,6 +68,7 @@ void condition_matrix(int N, int M, double mat[N][M]){
 			mat[i][j]/=max;
 		}
 	}
+	return max;
 }
 
 
@@ -132,6 +143,25 @@ void compute_submatrix(int psize[2], int rank, int N, int M, int min[2], int max
 	max[1] = (coords[1] + 1) * M / psize[1] - 1;
 }
 
+void matrix_product_wlock(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P], int lock_idx){
+	double result;
+	#pragma omp parallel for
+	for (int k = 0; k<M; k++) {
+		for (int i = 0; i < lock_idx; ++i)
+		{
+			C[k][i] = B[k][i];
+		}
+		for (int i = lock_idx; i<P;i++) {
+			result = 0;
+			#pragma omp parallel for reduction (+:result)
+			for (int j = 0; j<N;j++) {
+				result += A[k][j] * B[j][i];
+			}
+			C[k][i] = result;
+		}
+	}
+}
+
 // C = AB
 void matrix_product(int M, int N, int P, double A[M][N], double B[N][P], double C[M][P], MPI_Comm comm){
 	
@@ -196,6 +226,26 @@ void transpose(int M, int N, double A[M][N], double T[N][M]){
 	}
 }
 
+void crop_columns(int N, int M, int krylov_size, int lock_idx, double mat[N][M], double cropped[N][krylov_size]){
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = lock_idx; j < M; ++j)
+		{
+			cropped[i][j-lock_idx] = mat[i][j];
+		}
+	}
+}
+
+void merge_in(int N, int M, int krylov_size, double dst[N][M], double src[N][krylov_size]){
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = M - krylov_size; j < M; ++j)
+		{
+			dst[i][j] = src[i][j - M + krylov_size];
+		}
+	}
+}
+
 /* Computes B=q(^H)Aq
 */
 void projection(int N, int M, double A[N][N], double Z[N][M], double B[M][M], MPI_Comm comm){
@@ -206,6 +256,18 @@ void projection(int N, int M, double A[N][N], double Z[N][M], double B[M][M], MP
 	transpose(N, M, Z, transposed);
 
 	matrix_product(M, N, M, transposed, intermediate, B, comm);
+}
+
+/* Computes B=q(^H)Aq
+*/
+void projection_wlock(int N, int krylov_size, double A[N][N], double Zcropped[N][krylov_size], double B[krylov_size][krylov_size], int lock_idx){
+	double intermediate[N][krylov_size];
+	double transposed[krylov_size][N];
+
+	transpose(N, krylov_size, Zcropped, transposed);
+
+	matrix_product_wlock(N, N, krylov_size, A, Zcropped, intermediate, 0);
+	matrix_product_wlock(krylov_size, N, krylov_size, transposed, intermediate, B, 0);
 }
 
 /* Make the system of line vectors of the matrix A orthogonal and orthonormal
@@ -251,7 +313,7 @@ void init(int N, int M, double A[N][N], double q[N][M]) {
 	{
 		for (int j = 0; j < N; ++j)
 		{
-			A[i][i] = (double) rand() / RAND_MAX;
+			A[i][j] = (double) rand() / RAND_MAX;
 			if(j < M)
 				q[i][j] = (double) rand() / RAND_MAX;
 		}
@@ -270,23 +332,22 @@ void init_q(int N, int M, double q[M][N]){
 
 // Do the Simultaneous Iterations Methods
 void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, int n_eigen, MPI_Comm comm) {
-	condition_matrix(N, N, A);
-
+	// double norm_factor = condition_matrix(N, N, A);
 	// Temp vector
     double Z[N][M];
-    double B[M][M];
-    double H[M][M];
     double Zt[M][N];
     double eigen_real[M];
 
     double accuracies[M];
     int return_code;
+    int lock_idx = 0;
+    int krylov_size = M;
 
 	struct timeval start, curr;
 	gettimeofday(&start, NULL);
 	
 	// This limit iterations to 150 in case only a precision is given
-	if (iter == 0) iter = 500;
+	if (iter == 0) iter = 1000;
 
 	FILE* fp = fopen(CSV_FILENAME, "w+");
 	fprintf(fp, "iteration, eigindex, value, type\n");
@@ -302,30 +363,52 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		transpose(N, M, Z, Zt);
         orthonormalize(M, N, Zt);
         transpose(M, N, Zt, Z);
+        // printf("=====Z ORTHONORMALIZED=====\n");
+        // print_matrix(N, M, Z);
+        // printf("===========================\n");
 
+
+        double B[krylov_size][krylov_size];
+   		double H[krylov_size][krylov_size];
+   		double Zcropped[N][krylov_size];
 		// B = Zt A Z
-        projection(N, M, A, Z, B, comm);
+        // projection(N, M, A, Z, B, comm);
+        crop_columns(N, M, krylov_size, lock_idx, Z, Zcropped);
+        // printf("=====Z CROPPED=====\n");
+        // print_matrix(N, krylov_size, Zcropped);
+        // printf("===========================\n");
+        projection_wlock(N, krylov_size, A, Zcropped, B, lock_idx);
+        // printf("=====B=====\n");
+        // print_matrix(krylov_size, krylov_size, B);
+        // printf("===========================\n");
 
         //Factorisation de Schur LAPACK B = Yt R Y
-        double *tau = (double *) malloc(sizeof(double)*(M-1));
-        return_code = LAPACKE_dgehrd(LAPACK_ROW_MAJOR, M, 1, M, (double *) B, M, tau);
+        double *tau = (double *) malloc(sizeof(double)*(krylov_size-1));
+        return_code = LAPACKE_dgehrd(LAPACK_ROW_MAJOR, krylov_size, 1, krylov_size, (double *) B, krylov_size, tau);
 
-        double (*Q)[M] = (double (*)[M]) malloc(sizeof(double)*M*M);
-        double *wi = (double *) malloc(sizeof(double)*M);
-        copy_matrix(M, M, B, Q);
+        double (*Q)[krylov_size] = (double (*)[krylov_size]) malloc(sizeof(double)*krylov_size*krylov_size);
+        double *wi = (double *) malloc(sizeof(double)*krylov_size);
+        copy_matrix(krylov_size, krylov_size, B, Q);
 
-        return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, M, 1, M, (double *) Q, M, tau);
-        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', M, 1, M, (double *) B, M, (double *) eigen_real, (double *) wi, (double *) Q, M);
+        return_code = LAPACKE_dorghr(LAPACK_ROW_MAJOR, krylov_size, 1, krylov_size, (double *) Q, krylov_size, tau);
+        return_code = LAPACKE_dhseqr(LAPACK_ROW_MAJOR, 'S', 'V', krylov_size, 1, krylov_size, (double *) B, krylov_size, ((double *) eigen_real) + lock_idx, (double *) wi, (double *) Q, krylov_size);
 
-        for (int i = 0; i < M; ++i)
+        for (int i = 0; i < krylov_size; ++i)
         {
-			fprintf(fp,"%d,%d,%f,vr\n", n+1, i, eigen_real[i]);
-			fprintf(fp,"%d,%d,%f,vi\n", n+1, i, wi[i]);
+			fprintf(fp,"%d,%d,%f,vr\n", n+1, i + lock_idx, eigen_real[i + lock_idx]);
+			fprintf(fp,"%d,%d,%f,vi\n", n+1, i + lock_idx, wi[i]);
         }
 
 		// Qk = ZY is the new approx of eigenvectors
-        matrix_product(N, M, M, Z, Q, q, comm);
-
+		double qcropped[N][krylov_size];
+        matrix_product(N, krylov_size, krylov_size, Zcropped, Q, qcropped, comm);
+        // printf("=====q CROPPED=====\n");
+        // print_matrix(N, krylov_size, qcropped);
+        // printf("===========================\n");
+        merge_in(N, M, krylov_size, q, qcropped);
+        // printf("=====q MERGED=====\n");
+        // print_matrix(N, M, q);
+        // printf("===========================\n");
         free(tau);
         free(wi);
         free(Q);
@@ -336,21 +419,43 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		fprintf(fp, "%d,N/A,%f,t\n", n+1, duration);
 
 		// V = A * Q
-        matrix_product(N, N, M, A, q, Z, comm);
+        matrix_product_wlock(N, N, M, A, q, Z, lock_idx);
+        // printf("=====NEW Z=====\n");
+        // print_matrix(N, M, Z);
+        // printf("===========================\n");
 
-		estimate_errors(N, M, q, Z, eigen_real, accuracies);
-    	qsort(accuracies, M, sizeof(double), compare_doubles);
-		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
+		estimate_errors(N, M, q, Z, eigen_real, accuracies, lock_idx);
 
-		for (int i = 1; i < n_eigen; i++) {
-			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[i]);
+		double accuracies_sorted[M];
+		for (int i = 0; i < M; ++i)
+		{
+			accuracies_sorted[i] = accuracies[i];
+		}
+    	qsort(accuracies_sorted, M, sizeof(double), compare_doubles);
+		for (int i = 0; i < n_eigen; i++) {
+			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies_sorted[i]);
 		}
 	 	
-		if (precision > 0 && accuracies[n_eigen] < pow(10,-precision)) {
+		if (precision > 0){
+			if(accuracies_sorted[n_eigen - 1] < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %f\n", accuracies[n_eigen]);
+				printf("minimum eigenvector precision : %f\n", accuracies_sorted[n_eigen - 1]);
 				printf("Number of iteration : %d\n", n);
 				break;
+			}
+			else{
+				for (int i = lock_idx; i < M; ++i)
+				{
+					if (accuracies[i] < pow(10,-precision))
+					{
+						printf("Iteration : %d => SWAPPING %d and %d because accuracy is %lf\n", n, lock_idx, i, accuracies[i]);
+						swap_columns(lock_idx, i, N, M, Z);
+						swap_columns(lock_idx, i, N, M, q);
+						++lock_idx;
+						--krylov_size;
+					}
+				}
+			}
 		}
 
 		if (iter < 20 || n % (iter / 20) == 0)
