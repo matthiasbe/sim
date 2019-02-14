@@ -286,33 +286,17 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	gettimeofday(&start, NULL);
 	
 	// This limit iterations to 150 in case only a precision is given
-	if (iter == 0) iter = 150;
+	if (iter == 0) iter = 500;
 
 	FILE* fp = fopen(CSV_FILENAME, "w+");
 	fprintf(fp, "iteration, eigindex, value, type\n");
 	fprintf(fp, "0,N/A,%d,t\n", 0);
 	
+	// V = A * Q
+    matrix_product(N, N, M, A, q, Z, comm);
+
     for(int n = 0; n < iter; n++) {
-    	// V = A * Q
-        matrix_product(N, N, M, A, q, Z, comm);
-
-    	// measure_accuracy(N, M, q, A, accuracies, comm);
-    	estimate_errors(N, M, q, Z, eigen_real, accuracies);
-    	qsort(accuracies, M, sizeof(double), compare_doubles);
-		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
-	 	
-		if (precision > 0) {		
-			for (int i = 1; i < n_eigen; i++) {
-				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[i]);
-			}
-
-			if (accuracies[n_eigen] < pow(10,-precision)) {
-				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %f\n", accuracies[n_eigen]);
-				printf("Number of iteration : %d\n", n);
-				break;
-			}
-		}
+     	// measure_accuracy(N, M, q, A, accuracies, comm);
 
 		// QR decomposition V = Z R
 		transpose(N, M, Z, Zt);
@@ -350,6 +334,24 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		double duration = (double) (curr.tv_usec - start.tv_usec) / 1000000 +
 		         (double) (curr.tv_sec - start.tv_sec);
 		fprintf(fp, "%d,N/A,%f,t\n", n+1, duration);
+
+		// V = A * Q
+        matrix_product(N, N, M, A, q, Z, comm);
+
+		estimate_errors(N, M, q, Z, eigen_real, accuracies);
+    	qsort(accuracies, M, sizeof(double), compare_doubles);
+		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
+
+		for (int i = 1; i < n_eigen; i++) {
+			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[i]);
+		}
+	 	
+		if (precision > 0 && accuracies[n_eigen] < pow(10,-precision)) {
+				printf("**** accuracy %d reached with ****\n", precision);
+				printf("minimum eigenvector precision : %f\n", accuracies[n_eigen]);
+				printf("Number of iteration : %d\n", n);
+				break;
+		}
 
 		if (iter < 20 || n % (iter / 20) == 0)
 			printf("%2d%% (%d iterations) in %.3f seconds\n", (n*100)/iter, n, duration);
