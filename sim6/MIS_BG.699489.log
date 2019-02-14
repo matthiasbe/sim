@@ -1,0 +1,57 @@
+--------------------------------------------------------------------------
+A deprecated MCA variable value was specified in the environment or
+on the command line.  Deprecated MCA variables should be avoided;
+they may disappear in future releases.
+
+  Deprecated variable: rmaps_base_schedule_policy
+  New variable:        rmaps_base_mapping_policy
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: poincare008-adm
+  Fileame:    /gpfslocal/pub/tmp/openmpi-sessions-training12@poincare008-adm_0/10836/1/shared_mem_pool.poincare008-adm
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+detected matrix : 4929 x 4929
+ 0% (0 iterations) in 3.780 seconds
+ 4% (2 iterations) in 14.932 seconds
+ 8% (4 iterations) in 25.941 seconds
+12% (6 iterations) in 37.141 seconds
+16% (8 iterations) in 44.422 seconds
+20% (10 iterations) in 52.222 seconds
+24% (12 iterations) in 59.541 seconds
+28% (14 iterations) in 66.842 seconds
+32% (16 iterations) in 73.838 seconds
+36% (18 iterations) in 80.621 seconds
+40% (20 iterations) in 92.451 seconds
+44% (22 iterations) in 108.142 seconds
+48% (24 iterations) in 119.630 seconds
+52% (26 iterations) in 126.211 seconds
+56% (28 iterations) in 134.481 seconds
+60% (30 iterations) in 141.771 seconds
+64% (32 iterations) in 149.321 seconds
+68% (34 iterations) in 156.312 seconds
+72% (36 iterations) in 163.161 seconds
+76% (38 iterations) in 170.407 seconds
+80% (40 iterations) in 186.332 seconds
+84% (42 iterations) in 193.321 seconds
+88% (44 iterations) in 200.247 seconds
+92% (46 iterations) in 207.323 seconds
+96% (48 iterations) in 213.992 seconds
+duration (s) : 217.261628
