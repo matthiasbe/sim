@@ -14,9 +14,20 @@
 
 #define CSV_FILENAME "output.csv"
 
+void nan_in_matrix(int N, int M, double mat[N][M]){
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			if(isnan(mat[i][j]))
+				printf("NAN!\n");
+		}
+	}
+}
+
 void swap_columns(int i, int j, int N, int M, double mat[N][M]){
 	if(i != j){
-		int temp;
+		double temp;
 		for (int idx = 0; idx < N; ++idx)
 		{
 			temp = mat[idx][i]; mat[idx][i] = mat[idx][j]; mat[idx][j] = temp;
@@ -363,6 +374,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		transpose(N, M, Z, Zt);
         orthonormalize(M, N, Zt);
         transpose(M, N, Zt, Z);
+        
         // printf("=====Z ORTHONORMALIZED=====\n");
         // print_matrix(N, M, Z);
         // printf("===========================\n");
@@ -425,17 +437,17 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
         // printf("===========================\n");
 
 		estimate_errors(N, M, q, Z, eigen_real, accuracies, lock_idx);
-
+		// print_matrix(1, M, eigen_real);
 		double accuracies_sorted[M];
 		for (int i = 0; i < M; ++i)
 		{
 			accuracies_sorted[i] = accuracies[i];
 		}
     	qsort(accuracies_sorted, M, sizeof(double), compare_doubles);
+    	// print_matrix(1, M, accuracies);
 		for (int i = 0; i < n_eigen; i++) {
 			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies_sorted[i]);
 		}
-	 	
 		if (precision > 0){
 			if(accuracies_sorted[n_eigen - 1] < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
@@ -448,9 +460,11 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 				{
 					if (accuracies[i] < pow(10,-precision))
 					{
-						printf("Iteration : %d => SWAPPING %d and %d because accuracy is %lf\n", n, lock_idx, i, accuracies[i]);
+						printf("Iteration : %d => SWAPPING %d and %d because accuracy is %e\n", n, lock_idx, i, accuracies[i]);
 						swap_columns(lock_idx, i, N, M, Z);
 						swap_columns(lock_idx, i, N, M, q);
+						double temp = accuracies[i]; accuracies[i] = accuracies[lock_idx]; accuracies[lock_idx] = temp;
+						temp = eigen_real[i]; eigen_real[i] = eigen_real[lock_idx]; eigen_real[lock_idx] = temp;
 						++lock_idx;
 						--krylov_size;
 					}
