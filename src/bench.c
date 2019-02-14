@@ -209,7 +209,7 @@ void run_main_process(struct arguments args, MPI_Comm comm) {
 	struct timeval start;
 	gettimeofday(&start, NULL);
 
-	mis(args.N, args.M, A, q, args.iter, args.p, comm);
+	mis(args.N, args.M, A, q, args.iter, args.p, args.e, comm);
 
 	struct timeval end;
 	gettimeofday(&end, NULL);

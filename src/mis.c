@@ -14,6 +14,14 @@
 
 #define CSV_FILENAME "output.csv"
 
+int compare_doubles (const void *a, const void *b)
+{
+  const double *da = (const double *) a;
+  const double *db = (const double *) b;
+
+  return (*da > *db) - (*da < *db);
+}
+
 void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_real[M], double errors[M]){
 
 	for (int i = 0; i < M; ++i)
@@ -261,17 +269,9 @@ void init_q(int N, int M, double q[M][N]){
 }
 
 // Do the Simultaneous Iterations Methods
-void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, MPI_Comm comm) {
+void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, int n_eigen, MPI_Comm comm) {
 	condition_matrix(N, N, A);
-	double norm = 0;
-	for (int i = 0; i < N; ++i)
-	{
-		for (int j = 0; j < N; ++j)
-		{
-			norm += A[i][j];
-		}
-	}
-	printf("Norme : %lf\n", norm);
+
 	// Temp vector
     double Z[N][M];
     double B[M][M];
@@ -293,27 +293,22 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	fprintf(fp, "0,N/A,%d,t\n", 0);
 	
     for(int n = 0; n < iter; n++) {
-
-
     	// V = A * Q
         matrix_product(N, N, M, A, q, Z, comm);
 
     	// measure_accuracy(N, M, q, A, accuracies, comm);
     	estimate_errors(N, M, q, Z, eigen_real, accuracies);
+    	qsort(accuracies, M, sizeof(double), compare_doubles);
 		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
 	 	
-		if (precision > 0) {
-			double max_accuracy = accuracies[0];
-			
-			for (int i = 1; i < M; i++) {
-				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[1]);
-				if (accuracies[i] > max_accuracy)
-					max_accuracy = accuracies[i];
+		if (precision > 0) {		
+			for (int i = 1; i < n_eigen; i++) {
+				fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[i]);
 			}
 
-			if (max_accuracy < pow(10,-precision)) {
+			if (accuracies[n_eigen] < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %f\n", max_accuracy);
+				printf("minimum eigenvector precision : %f\n", accuracies[n_eigen]);
 				printf("Number of iteration : %d\n", n);
 				break;
 			}
@@ -347,12 +342,16 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		// Qk = ZY is the new approx of eigenvectors
         matrix_product(N, M, M, Z, Q, q, comm);
 
+        free(tau);
+        free(wi);
+        free(Q);
+
 		gettimeofday(&curr, NULL);
 		double duration = (double) (curr.tv_usec - start.tv_usec) / 1000000 +
 		         (double) (curr.tv_sec - start.tv_sec);
 		fprintf(fp, "%d,N/A,%f,t\n", n+1, duration);
 
-		if (n % (iter / 20) == 0)
+		if (iter < 20 || n % (iter / 20) == 0)
 			printf("%2d%% (%d iterations) in %.3f seconds\n", (n*100)/iter, n, duration);
     }
 }
