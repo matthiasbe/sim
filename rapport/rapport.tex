@@ -19,6 +19,9 @@
 \usepackage{appendix}
 \usepackage{pgfplots}
 \usepackage[hidelinks]{hyperref}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \pgfplotsset{compat=1.3}
 
@@ -62,17 +65,63 @@
 
 \section{Cas séquentiel}
 
-	\subsection{Description de l'algorithme}
-	\subsection{Etude de performances théorique}
-	\subsection{Etude de performances pratique}
-	\subsection{Ajout d'une méthode de déflation "locking"}
+	\subsection{Description de l'algorithme minimal}
+
+		Données du problèmes :
+
+		\begin{itemize}
+			\item $m$ : taille du sous-espace de Krylov
+			\item $k$ : nombre de vecteurs propres demandé
+			\item $p$ : précision demandé
+			\item $A$ : matrice de taille $n*n$ donnée en entrée
+			\item $N$ : nombre d'itérations
+		\end{itemize}
+
+		\begin{algorithm}
+			\caption{Algorithme minimal}
+			\begin{algorithmic}[1]
+					\State $Q \gets rand()$
+					\While {$i = 0 .. N-1$ OU min(precisions) < p}
+						\State $Z = AQ$
+						\State Gram-Schmidt $Q$
+						\State Projection $B = Z^tAZ$
+						\State Décomposition de Schur $B = Y^tRY$
+						\State Retour dans l'espace d'origine $Q = ZY$
+						\State Sélection des $k$ vecteur propres
+						\State Calcul de la précision
+						\State Locking
+					\EndWhile
+				\end{algorithmic}
+		\end{algorithm}
+
+		Dans les paragraphes suivant sont détaillés chaque étape de l'algorithme.
+
+		\subsubsection{Procédé de Gram-Schmidt}
+
+			On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'algorithme consiste chaque vecteur de la matrice $Z$ dans un vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté.
+
+
+
+		\subsubsection{Projection dans l'espace de Krylov}
+
+		\subsubsection{Décomposition de Schur}
+
+		\subsubsection{Sélection de $k$ vecteurs propres}
+
+		\subsubsection{Calcul de la précision}
+
+		\subsubsection{Locking}
+
+	\subsection{Étude de performances théorique}
+	\subsection{Étude de performances pratique}
+	\subsection{Ajout d'une méthode de déflation "Locking"}
 	\subsection{Conclusions}
 
 \section{Cas parallèle}
 	
 	\subsection{Approche utilisée}
-	\subsection{Etude de performances théorique}
-	\subsection{Etude de performances pratique}
+	\subsection{Étude de performances théorique}
+	\subsection{Étude de performances pratique}
 	\subsection{Conclusions}
 
 \section{Conclusion générale}
