@@ -1,0 +1,16 @@
+\babel@toc {french}{}
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
+\contentsline {section}{\numberline {2}Probl\IeC {\'e}matique}{2}{section.2}
+\contentsline {section}{\numberline {3}Approche utilis\IeC {\'e}e}{2}{section.3}
+\contentsline {section}{\numberline {4}Cas s\IeC {\'e}quentiel}{2}{section.4}
+\contentsline {subsection}{\numberline {4.1}Description de l'algorithme}{2}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Etude de performances th\IeC {\'e}orique}{2}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Etude de performances pratique}{2}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}Ajout d'une m\IeC {\'e}thode de d\IeC {\'e}flation "locking"}{2}{subsection.4.4}
+\contentsline {subsection}{\numberline {4.5}Conclusions}{2}{subsection.4.5}
+\contentsline {section}{\numberline {5}Cas parall\IeC {\`e}le}{2}{section.5}
+\contentsline {subsection}{\numberline {5.1}Approche utilis\IeC {\'e}e}{2}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Etude de performances th\IeC {\'e}orique}{2}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Etude de performances pratique}{2}{subsection.5.3}
+\contentsline {subsection}{\numberline {5.4}Conclusions}{2}{subsection.5.4}
+\contentsline {section}{\numberline {6}Conclusion g\IeC {\'e}n\IeC {\'e}rale}{2}{section.6}
