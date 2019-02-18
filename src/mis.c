@@ -28,7 +28,7 @@ void estimate_errors(int N, int M, double Q[N][M], double Z[N][M], double eigen_
 	{
 		errors[i] = 0;
 	}
-	#pragma omp parallel for simd
+	// #pragma omp parallel for simd
 	for (int i = 0; i < N; ++i)
 	{
 		for (int j = 0; j < M; ++j)
@@ -286,7 +286,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	gettimeofday(&start, NULL);
 	
 	// This limit iterations to 150 in case only a precision is given
-	if (iter == 0) iter = 500;
+	if (iter == 0) iter = 1000;
 
 	FILE* fp = fopen(CSV_FILENAME, "w+");
 	fprintf(fp, "iteration, eigindex, value, type\n");
@@ -319,8 +319,8 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
         for (int i = 0; i < M; ++i)
         {
-			fprintf(fp,"%d,%d,%f,vr\n", n+1, i, eigen_real[i]);
-			fprintf(fp,"%d,%d,%f,vi\n", n+1, i, wi[i]);
+			fprintf(fp,"%d,%d,%e,vr\n", n+1, i, eigen_real[i]);
+			fprintf(fp,"%d,%d,%e,vi\n", n+1, i, wi[i]);
         }
 
 		// Qk = ZY is the new approx of eigenvectors
@@ -340,15 +340,15 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
 		estimate_errors(N, M, q, Z, eigen_real, accuracies);
     	qsort(accuracies, M, sizeof(double), compare_doubles);
-		fprintf(fp, "%d,%d,%f,A\n", n, 0, accuracies[0]);
+		fprintf(fp, "%d,%d,%e,A\n", n, 0, accuracies[0]);
 
 		for (int i = 1; i < n_eigen; i++) {
-			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies[i]);
+			fprintf(fp, "%d,%d,%e,A\n", n, i, accuracies[i]);
 		}
 	 	
-		if (precision > 0 && accuracies[n_eigen] < pow(10,-precision)) {
+		if (precision > 0 && accuracies[n_eigen-1] < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %f\n", accuracies[n_eigen]);
+				printf("minimum eigenvector precision : %e\n", accuracies[n_eigen]);
 				printf("Number of iteration : %d\n", n);
 				break;
 		}
