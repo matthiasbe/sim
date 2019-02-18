@@ -286,7 +286,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	gettimeofday(&start, NULL);
 	
 	// This limit iterations to 150 in case only a precision is given
-	if (iter == 0) iter = 1000;
+	if (iter == 0) iter = 10000;
 
 	FILE* fp = fopen(CSV_FILENAME, "w+");
 	fprintf(fp, "iteration, eigindex, value, type\n");
@@ -348,7 +348,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	 	
 		if (precision > 0 && accuracies[n_eigen-1] < pow(10,-precision)) {
 				printf("**** accuracy %d reached with ****\n", precision);
-				printf("minimum eigenvector precision : %e\n", accuracies[n_eigen]);
+				printf("minimum eigenvector precision : %e\n", accuracies[n_eigen-1]);
 				printf("Number of iteration : %d\n", n);
 				break;
 		}
