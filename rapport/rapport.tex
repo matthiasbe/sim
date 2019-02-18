@@ -65,7 +65,7 @@
 
 \section{Cas séquentiel}
 
-	\subsection{Description de l'algorithme minimal}
+	\subsection{Description de l'algorithme général}
 
 		Données du problèmes :
 
@@ -78,7 +78,7 @@
 		\end{itemize}
 
 		\begin{algorithm}
-			\caption{Algorithme minimal}
+			\caption{Algorithme général}
 			\begin{algorithmic}[1]
 					\State $Q \gets rand()$
 					\While {$i = 0 .. N-1$ OU min(precisions) < p}
@@ -98,15 +98,28 @@
 
 		\subsubsection{Procédé de Gram-Schmidt}
 
-			On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'algorithme consiste chaque vecteur de la matrice $Z$ dans un vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté.
+			On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'ortogonalisation consiste chaque vecteur de la matrice $Z$ dans un vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme.
 
-
-
-		\subsubsection{Projection dans l'espace de Krylov}
+			\begin{algorithm}
+				\caption{Algorithme de Gram-Schmidt}
+				\begin{algorithmic}[1]
+					\For {$i = 0..m-1$}
+						\State $q^{temp}_i \gets q_i$
+						\For{$k = 0..i$}
+						\State $q^{temp}_i \gets q^{temp}_i - q_k(q_k.q_i)$
+						\EndFor
+					\EndFor
+					\State $Q \gets Q^{temp}$
+				\end{algorithmic}
+			\end{algorithm}
 
 		\subsubsection{Décomposition de Schur}
 
+		La décomposition de Schur permet de calculer les valeurs et vecteurs propre de l'espace de Krylov, aussi appelés valeurs et vecteurs de Ritz. Pour ce calcul a été utilisé la bibliothèque \texttt{lapacke}.
+
 		\subsubsection{Sélection de $k$ vecteurs propres}
+
+			En entrée du programme est précisé le nombre $k$ de vecteurs propres désirés. La précision est calculé uniquement sur les $k$ vecteurs de plus grande valeur propre associée. Pour sélectionner ces vecteur, on range les vecteurs par valeur propre associée puis on ne garde que les $k$ premiers.
 
 		\subsubsection{Calcul de la précision}
 
