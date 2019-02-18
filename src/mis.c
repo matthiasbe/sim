@@ -14,17 +14,6 @@
 
 #define CSV_FILENAME "output.csv"
 
-void nan_in_matrix(int N, int M, double mat[N][M]){
-	for (int i = 0; i < N; ++i)
-	{
-		for (int j = 0; j < M; ++j)
-		{
-			if(isnan(mat[i][j]))
-				printf("NAN!\n");
-		}
-	}
-}
-
 void swap_columns(int i, int j, int N, int M, double mat[N][M]){
 	if(i != j){
 		double temp;
