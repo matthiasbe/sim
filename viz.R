@@ -13,7 +13,10 @@ data %>%
 # data_wlock = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/measures.csv") %>%
 #   as_tibble()
 # 
-# data_wlock %>%
-#   filter(e == 5) %>%
-#   mutate(m = as.factor(m)) %>%
-#   ggplot(aes(x = p, y = N, color = m)) + geom_path() + geom_point()
+# data_wolock = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/measures_wolock.csv") %>%
+#   as_tibble()
+# 
+# bind_rows("wlock" = data_wlock, "wolock" = data_wolock, .id = "id") %>%
+#   filter(e == 8, m == 8) %>%
+#   mutate(id = as.factor(id)) %>%
+#   ggplot(aes(x = p, y = N, color = id)) + geom_path() + geom_point()
