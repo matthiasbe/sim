@@ -347,7 +347,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 	gettimeofday(&start, NULL);
 	
 	// This limit iterations to 150 in case only a precision is given
-	if (iter == 0) iter = 1000;
+	if (iter == 0) iter = 10000;
 
 	FILE* fp = fopen(CSV_FILENAME, "w+");
 	fprintf(fp, "iteration, eigindex, value, type\n");
@@ -435,7 +435,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
     	qsort(accuracies_sorted, M, sizeof(double), compare_doubles);
     	// print_matrix(1, M, accuracies);
 		for (int i = 0; i < n_eigen; i++) {
-			fprintf(fp, "%d,%d,%f,A\n", n, i, accuracies_sorted[i]);
+			fprintf(fp, "%d,%d,%e,A\n", n, i, accuracies_sorted[i]);
 		}
 		if (precision > 0){
 			if(accuracies_sorted[n_eigen - 1] < pow(10,-precision)) {

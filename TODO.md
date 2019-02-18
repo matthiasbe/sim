@@ -19,6 +19,7 @@
 - t(N)
 - N(m), k fixé
 - N(k), m fixé
+- t(m)
 
 ## Méta variables pour tous les plots
 
