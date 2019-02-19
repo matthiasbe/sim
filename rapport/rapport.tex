@@ -84,7 +84,7 @@
 		\end{itemize}
 
 		\begin{algorithm}
-			\caption{Algorithme général}
+			\caption{Algorithme général \label{algo:general}}
 			\begin{algorithmic}[1]
 					\State $Q \gets rand()$
 					\While {$i = 0 .. N-1$ OU max(precisions) < p}
@@ -99,14 +99,15 @@
 				\end{algorithmic}
 		\end{algorithm}
 
+		L'algorithme implémenté est l'algorithme \ref{algo:general}.
 		Dans les paragraphes suivant sont détaillés chaque étape de l'algorithme.
 
 		\subsubsection{Procédé de Gram-Schmidt}
 
-			On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'ortogonalisation consiste chaque vecteur de la matrice $Z$ dans un vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme.
+			On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'ortogonalisation consiste chaque vecteur de la matrice $Z$ dans un vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme. L'algorithme correspondant est l'algorithme \ref{algo:GS}.
 
 			\begin{algorithm}
-				\caption{Algorithme de Gram-Schmidt}
+				\caption{Algorithme de Gram-Schmidt \label{algo:GS}}
 				\begin{algorithmic}[1]
 					\For {$i = 0..m-1$}
 						\State $q^{temp}_i \gets q_i$
@@ -134,6 +135,12 @@
 
 			$$
 			p_i = \norm{Av-\lambda v}
+			$$
+
+			On se propose aussi de tester une métrique qui permet d'étudier la correction d'un vecteur propre va sa colinéarité avec son image par $A$. Plus sa valeur est proche de 1 plus le vecteur trouvé est une bonne estimation d'un vecteur propre de $A$.
+
+			$$
+			\overset{\sim}{p_i} = \frac{<Av, v>}{\norm{Av}\norm{v}}
 			$$
 
 	\subsection{Étude de performances théorique}
@@ -194,7 +201,7 @@
 	\subsection{Conclusions}
 
 \section{Cas parallèle}
-	\subsection{Approche utilisée}
+	\subsection{Approches utilisées}
 		Maintenant que nous avons correctement pu tester notre code séquentiel et valider les résultats que nous obtenons avec, nous nous attachons à paralléliser notre implémentation. Tout d'abord, il faut remarquer que nous effectuons des calculs dans deux espaces vectoriels différents : dans l'espace d'origine $\mathbb{R}^{N\times N}$ et dans le sous-espace de Krylov $\mathbb{R}^{m\times m}$. Les calculs les plus couteux sont donc bien évidemment ceux effectués dans l'espace d'origine qui est une dimension largement supérieure à celle du sous-espace de Krylov. Les calculs qu'il est donc nécessaire de paralléliser sont ceux effectués dans l'espace d'origine ainsi que les changements de base pour passer de l'espace d'origine au sous-espace de Krylov. Les calculs à paralléliser sont donc les produits matrice/matrice dans l'espace d'origine.
 
 		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à \textbf{OpenMP} car la plupart des calculs sont indépendants lors du produit matriciel et que l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités en temps de communication. On réalise donc cet ajout d'OpenMP à l'aide de l'ajout de pragmas devant les boucles de notre code qui peuvent être parallélisés. Les gains en performance apportés par OpenMP sont représentées sur la figure \ref{fig:omp_perf}. On peut observer que l'on gagne un facteur d'accélération de 7 en utilisant 8 coeurs physiques ce qui est très important. Cela montre que notre code est fortement parallélisable et que peu de temps de calcul est utilisé lors des parties séquentielles. On peut ensuite observer sur la figures que lorsque l'on utilise des coeurs logiques hyperthreadés supplémentaires les performances sont dégradées avant de s'aéliorer lorsque leur nombre augmente. Ceci est logique car les coeurs hyperthreadés ne possèdent pas leurs propres modules pour effectuer les opérations et ne proposent donc pas une bonne accélération lorsque le code est fortement parallélisable.
