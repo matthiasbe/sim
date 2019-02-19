@@ -247,7 +247,7 @@
 	\subsection{\'Etude de convergence}
 		Après avoir étudié les performances de notre implémentation, nous nous intéressons désormais à l'étude de la précision. Pour ce faire, nous étudions notamment la vitesse de convergence de l'algorithme en fonction des différents paaramètres utilisés.
 
-		On peut tout d'abord observer sur les figures \ref{fig:Nvse-m_p6}, \ref{fig:Nvse-m_p8} et \ref{fig:Nvse-m_p10} l'impact du choix de la taille du sous espace de Krylov.
+		On peut tout d'abord observer sur les figures \ref{fig:Nvse-m_p6}, \ref{fig:Nvse-m_p8} et \ref{fig:Nvse-m_p10} l'impact du choix de la taille du sous espace de Krylov. Nous nous sommes limités à 10000 itérations, une telle valeur signifie donc unenon convergence sur les graphiques. On constate que, de manière générale, une taille de sous-espace de Krylov $m$ plus grande permet une meilleure convergence générale d'un plus grand nombre de vecteurs propres. On peut voir sur la figure \ref{fig:Nvse-m_p10} que seule une taille $m \geq 8$ permet de faire converger 4 vecteurs propres avec une précision $p=\SI{e-10}{}$, pour les valeurs inférieures de $m$ moins de vecteurs propres convergent. On peut néanmoins remarquer sur la figure \ref{fig:Nvse-m_p8} qu'un $m$ inférieur peut permettre une convergence plus rapide. Cela nous montre bien qu'il y a un compromis à trouver pour la valeur de $m$ qui doit être assez grande pur permettre à assez de vecteurs propres de converger mais pas trop grande au risque deperdre en vitesse de convergence dans certains cas.
 
 		\begin{figure}
 			\centering
@@ -267,14 +267,51 @@
 			\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p=\SI{e-10}{}$ \label{fig:Nvse-m_p10}}
 		\end{figure}
 
+		On peut finalement observer sur la figure \ref{fig:Nvsp-m_e4} que le nombre d'itérations nécessaires augmente avec la précision et que la convergence est plus rapide pour une plus grande valeur de $m$. Cela nou montre que la valeur de $m$ à choisir est aussi liée à la précision que l'on désire atteindre.
+
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.8\linewidth, keepaspectratio]{plots/Nvsp-m_e4.pdf}
+			\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ \label{fig:Nvsp-m_e4}}
+		\end{figure}
+
 
 	\subsection{Ajout d'une méthode de déflation "Locking"}
 		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciller au cours des itérations.
 
 		Afin de résoudre ces deux problèmes nous avons décidé de mettre en place une méthode de déflation appelée "locking". Le principe est simple : lorsqu'un vecteur propre a convergé jusqu'à la précision désirée, on le verrouille de sorte à ne plus le remultiplier par la matrice $A$ et on diminue la taille du sous-espace de Krylov d'une unité. Néanmoins, on utilise toujours ce vecteur pour l'orthonormalisation afin qu'il guide la convergence correcte des vecteurs restants.
 
-	\subsection{Conclusions}
 
+		On représente sur la figure \ref{fig:comp_locks} la précision au cours des itérations pour $e$ et $m$ fixés dans le cas de la méthode initiale et de la méthode avec locking. On peut tout d'abord observer que la convergence est bien plus rapide lorsque le locking est utilisé (environ 2000 contre 3800 itérations). On peut en outre constater sur la figure \ref{wlock_e4_p8_m8} que la convergence avec locking semble moins instable.
+
+		\begin{figure}
+			\centering
+			\begin{subfigure}{0.49\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, keepaspectratio]{plots/wlock_e4_p8_m8.pdf}
+				\caption{Avec locking\label{wlock_e4_p8_m8}}
+			\end{subfigure}
+			\begin{subfigure}{0.49\linewidth}
+				\centering
+				\includegraphics[width=\linewidth, keepaspectratio]{plots/wolock_e4_p8_m8.pdf}
+				\caption{Sans locking\label{wolock_e4_p8_m8}}
+			\end{subfigure}
+			\caption{Précision au cours des itérations $N$ pour $e = 4$ valeurs propres pour une taille de sous-espace de Krylov $m=8$\label{fig:comp_locks}}
+		\end{figure}
+
+		De même, on peut voir sur la figure \ref{fig:Nvsp_complock} que l'ajout du locking permet de gagner en rapidité notamment lorsque la précision et la taille du sous-espace de Krylov sont élevés.
+
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.8\linewidth, keepaspectratio]{plots/Nvsp_complock.pdf}
+			\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ avec et sans utilisation du locking \label{fig:Nvsp_complock}}
+		\end{figure}
+
+		En outre, en plus de diminuer le nombre d'itérations, la méthode de locking permet de diminuer la complexité à chaque fois qu'un vecteur est verouillé car on diminue alors la taille du sous-espace de Krylov et ainsi la complexité qui dépend linéairement de $m$.
+
+	\subsection{Conclusions}
+		Nous avons pu correctement implémenter l'algorithme des itérations simultanées en séquentiel et retrouver, grâce à nos mesures, la omplexité théorique prédite. Nous avons pu mesurer l'impact des différents paramètres sur la vitesse de convergence de l'algorihme et notamment celle de la taille du sous-espace de Krylov $m$ qui doit être choisi soigneusement. Nous aons par la suite amélioré notre premier algorithme en implémentant le locking ce qui permet d'obtenir une convergence plus rapide et avec une complexité moindre.
+		
 \section{Cas parallèle}
 	\subsection{Approches utilisées}
 
@@ -327,43 +364,5 @@
 	Nous avons pu implémenter la méthode des itérations simultanées afin de calculer les valeurs et vecteurs propres d'une grande matrice creuse. Nous avons ensuite tenté d'améliorer l'algorithme initialement proposé en introduisant le "locking" permettant de modifier les paramètres de redémarrage afin de gagner à la fois en temps de calcul et en stabilité numérique de la convergence. Nous avons pu constater que l'ajout du locking a effectivement permis d'augmenter l'efficacité et la précision de notre implémentation. Nous avons aussi implémenté un conditionnement simpliste des matrices en entrée afin de résoudre certains problèmes de stabilité numérique dans le cas de matrices mal conditionnées en entrée.
 
 	Nous nous sommes ensuite proposés de paralléliser notre programme à l'aide de deux outils : OpenMP et MPI. Nous avons tout d'abord effectué la parallélisation des boucles avec OpenMP puis nous avons implémenté les produits de matrices couteux en MPI. Nous avons pu tester notre code parallèle sur le cluster poincare à la maison de la simulation. Les résultats furent assez décevants car notre parallélisation MPI a augmenté les temps de calcul à cause des coups trop élevés des transferts de données. Nous en concluons que la parallélisation efficace de ce type d'algorithme doit plutôt reposer sur l'implémentation de méthodes hybrides.
-
-
-% FIGURES A AJOUTER
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.8\linewidth, keepaspectratio]{plots/Nvsp-m_e4.pdf}
-	\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ \label{fig:Nvsp-m_e4}}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.8\linewidth, keepaspectratio]{plots/Nvsp_complock.pdf}
-	\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ avec et sans utilisation du locking \label{fig:Nvsp_complock}}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\begin{subfigure}{0.49\linewidth}
-		\centering
-		\includegraphics[width=\linewidth, keepaspectratio]{plots/wlock_e4_p8_m8.pdf}
-		\caption{Avec locking\label{wlock_e4_p8_m8}}
-	\end{subfigure}
-	\begin{subfigure}{0.49\linewidth}
-		\centering
-		\includegraphics[width=\linewidth, keepaspectratio]{plots/wolock_e4_p8_m8.pdf}
-		\caption{Sans locking\label{wolock_e4_p8_m8}}
-	\end{subfigure}
-	\caption{Précision au cours des itérations $N$ pour $e = 4$ valeurs propres pour une taille de sous-espace de Krylov $m=8$\label{fig:comp_locks}}
-\end{figure}
-
-On représente sur la figure \ref{fig:comp_locks} la précision au cours des itérations pour $e$ et $m$ fixés dans le cas de la méthode initiale et de la méthode avec locking. On peut tout d'abord observer que la convergence est bien plus rapide lorsque le locking est utilisé (environ 2000 contre 3800 itérations). On peut en outre constater sur la figure \ref{wlock_e4_p8_m8} que la convergence avec locking semble moins instable.
-
-
-% \bibliographystyle{unsrt}
-% \bibliography{synopsis.bib}
-
-%\input{appendix}
 
 \end{document}
