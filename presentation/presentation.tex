@@ -57,7 +57,21 @@
 
 \section{Présentation de l'algorithme}
 	\begin{frame}{La méthode des itérations simultanées}
+		\begin{block}{Méthode de la puissance}
+			\begin{itemize}
+				\item Extraction de la vp dominante d'une matrice $A$.
+				\item Multiplication répétée d'un vecteur initial par $A$.
+				\item Convergence en $\left(\frac{\lambda_1}{\lambda_2}\right)^N$
+			\end{itemize}
+		\end{block}
 
+		\begin{block}{Méthode des itérations simultanées}
+			\begin{itemize}
+				\item Espace invariant par $A$ de dim $k > 1$.
+				\item Multiplication répétée du sous-espace par $A$.
+				\item Orthonormalisationdu sous-espace.
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
 \section{Séquentiel}
@@ -233,7 +247,21 @@
 
 \section{Conclusion}
 	\begin{frame}{Conclusion}
+		\begin{block}{Algorithme}
+			\begin{itemize}
+				\item Compexité pratique proche de la théorie.
+				\item Imporance du choix de $m$ en fonction des autres paramètres.
+				\item Meilleure convergence et efficacité avec locking.
+			\end{itemize}
+		\end{block}
 
+		\begin{block}{Parallélisation}
+			\begin{itemize}
+				\item Très bonne parallélisation intra-n\oe{}ud.
+				\item Mauvaise scalabilité sur inter-n\oe{}ud $\rightarrow$ communications trop couteuses.
+				\item Méthodes hybrides probablement mieux adaptées à l'inter-n\oe{}ud.
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
 \end{document}
