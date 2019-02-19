@@ -222,13 +222,33 @@
 
 
 	\subsection{Étude de performances pratique}
+		Après avoir exprimé la complexité théorique de notre algorithme, on étudie ses performances en pratique. On peut tout d'abord voir sur la figure \ref{fig:tvsiter} que la complexité est bien linéaire en fonction du nombre d'itération comme prédit par la théorie.
+		\begin{figure}
+			\centering
+			\includegraphics[width = 0.7\linewidth]{plots/tvsiter.pdf}
+			\caption{Evolution du temps de calcul en fonction du nombre d'itérations. \label{fig:tvsiter}}
+		\end{figure}
+
+		De même, on peut observer sur la figure \ref{fig:tvsm} que la complexité est bien linéaire en fonction de la taille du sous-espace de Krylov comme prédit par la théorie.
+		\begin{figure}
+			\centering
+			\includegraphics[width = 0.7\linewidth]{plots/tvsm.pdf}
+			\caption{Evolution du temps de calcul en fonction de la taille du sous-espace de Krylov $m$. \label{fig:tvsm}}
+		\end{figure}
+
+		Finalement, on peut observer sur la figure \ref{fig:tvsM}, qui est en échelle logarithmique, que la complexité suit bien une loi de puissance d'ordre environ 2 en fonction de la taille de la matrice comme prédit par la théorie.
+		\begin{figure}
+			\centering
+			\includegraphics[width = 0.7\linewidth]{plots/tvsM.pdf}
+			\caption{Evolution du temps de calcul en fonction de la taille de la matrice $M$. \label{fig:tvsM}}
+		\end{figure}
 
 
 
 	\subsection{Ajout d'une méthode de déflation "Locking"}
 		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciler au cours des itérations.
 
-		Afin de résoudre ces deux problèmes nous avons décidé de mettre en place une méthode de déflation appelée "locking". Le principe est simple : lorsqu'un vecteur propre a convergé jusqu'à la précision désirée, on le verrouille de sorte à ne plus le remultiplier par la matrice $A$ et on diminue la taille du sous-espace de Krylov d'une unité. Néanmoins, on utilise toujours ce vecteur pour l'orthonormalisation afin qu'il guide la convergence correcte des veteurs restants.
+		Afin de résoudre ces deux problèmes nous avons décidé de mettre en place une méthode de déflation appelée "locking". Le principe est simple : lorsqu'un vecteur propre a convergé jusqu'à la précision désirée, on le verrouille de sorte à ne plus le remultiplier par la matrice $A$ et on diminue la taille du sous-espace de Krylov d'une unité. Néanmoins, on utilise toujours ce vecteur pour l'orthonormalisation afin qu'il guide la convergence correcte des vecteurs restants.
 
 	\subsection{Conclusions}
 
