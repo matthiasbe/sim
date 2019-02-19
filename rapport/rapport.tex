@@ -267,7 +267,7 @@
 			\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p=\SI{e-10}{}$ \label{fig:Nvse-m_p10}}
 		\end{figure}
 
-		On peut finalement observer sur la figure \ref{fig:Nvsp-m_e4} que le nombre d'itérations nécessaires augmente avec la précision et que la convergence est plus rapide pour une plus grande valeur de $m$. Cela nou montre que la valeur de $m$ à choisir est aussi liée à la précision que l'on désire atteindre.
+		On peut finalement observer sur la figure \ref{fig:Nvsp-m_e4} que le nombre d'itérations nécessaires augmente avec la précision et que la convergence est plus rapide pour une plus grande valeur de $m$. Cela nous montre que la valeur de $m$ à choisir est aussi liée à la précision que l'on désire atteindre.
 
 		\begin{figure}
 			\centering
@@ -311,7 +311,7 @@
 
 	\subsection{Conclusions}
 		Nous avons pu correctement implémenter l'algorithme des itérations simultanées en séquentiel et retrouver, grâce à nos mesures, la omplexité théorique prédite. Nous avons pu mesurer l'impact des différents paramètres sur la vitesse de convergence de l'algorihme et notamment celle de la taille du sous-espace de Krylov $m$ qui doit être choisi soigneusement. Nous aons par la suite amélioré notre premier algorithme en implémentant le locking ce qui permet d'obtenir une convergence plus rapide et avec une complexité moindre.
-		
+
 \section{Cas parallèle}
 	\subsection{Approches utilisées}
 

@@ -62,13 +62,91 @@
 		\end{frame}
 
 	\subsection{Performances pratiques}
-		\begin{frame}{Performances pratiques}
+		\begin{frame}{Nombre d'itérations}
+			\begin{figure}
+				\centering
+				\includegraphics[width = 0.7\linewidth]{../rapport/plots/tvsiter.pdf}
+				\caption{Evolution du temps de calcul en fonction du nombre d'itérations. \label{fig:tvsiter}}
+			\end{figure}
+		\end{frame}
 
+		\begin{frame}{Taille du sous-espace de Krylov $m$}
+			\begin{figure}
+				\centering
+				\includegraphics[width = 0.7\linewidth]{../rapport/plots/tvsm.pdf}
+				\caption{Evolution du temps de calcul en fonction de la taille du sous-espace de Krylov $m$. \label{fig:tvsm}}
+			\end{figure}
+		\end{frame}
+
+		\begin{frame}{Taille de la matrice $M$}
+			\begin{figure}
+				\centering
+				\includegraphics[width = 0.7\linewidth]{../rapport/plots/tvsM.pdf}
+				\caption{Evolution du temps de calcul en fonction de la taille de la matrice $M$. \label{fig:tvsM}}
+			\end{figure}
+		\end{frame}
+
+	\subsection{\'Etude de convergence}
+		\begin{frame}{Influence de $m$}
+			\begin{figure}
+				\centering
+				\includegraphics[width=0.8\linewidth, keepaspectratio]{../rapport/plots/Nvse-m_p6.pdf}
+				\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p=\SI{e-6}{}$ \label{fig:Nvse-m_p6}}
+			\end{figure}
+		\end{frame}
+
+		\begin{frame}{Influence de $p$}
+			\begin{figure}
+				\centering
+				\includegraphics[width=0.8\linewidth, keepaspectratio]{../rapport/plots/Nvsp-m_e4.pdf}
+				\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ \label{fig:Nvsp-m_e4}}
+			\end{figure}
 		\end{frame}
 
 	\subsection{Locking}
-		\begin{frame}{Locking}
+		\begin{frame}{Principe du locking}
+			\begin{block}{Justificatons}
+				\begin{itemize}
+					\item Vitesses de convergence différentes des vp.
+					\item Perte de temps.
+					\item Instabilités numériques.
+				\end{itemize}
+			\end{block}
 
+			\begin{exampleblock}{Le locking}
+				\begin{itemize}
+					\item On verrouille les vp lorsqu'ils ont convergé.
+					\item On ne le multiplie par A.
+					\item On diminue m.
+					\item On l'utilise pour l'orthonormalisation.
+				\end{itemize}
+			\end{exampleblock}
+		\end{frame}
+
+		\begin{frame}{Performances du locking}
+			\begin{figure}
+				\centering
+				\begin{columns}
+					\column{0.5\linewidth}
+					\centering
+					\includegraphics[width=\linewidth, keepaspectratio]{../rapport/plots/wlock_e4_p8_m8.pdf}
+					\caption{Avec locking\label{wlock_e4_p8_m8}}
+
+					\column{0.5\linewidth}
+					\centering
+					\includegraphics[width=\linewidth, keepaspectratio]{../rapport/plots/wolock_e4_p8_m8.pdf}
+					\caption{Sans locking\label{wolock_e4_p8_m8}}
+				\end{columns}
+				\caption{Précision au cours des itérations $N$ pour $e = 4$ valeurs propres pour une taille de sous-espace de Krylov $m=8$\label{fig:comp_locks}}
+			\end{figure}
+		\end{frame}
+
+		\begin{frame}{Performances du locking}
+			\begin{figure}
+				\centering
+				\includegraphics[width=0.8\linewidth, keepaspectratio]{../rapport/plots/Nvsp_complock.pdf}
+				\caption{Nombre d'itérations $N$ nécessaires pour faire converger $e = 4$ valeurs propres pour différentes tailles de sous-espace de Krylov $m$ et une précision $p$ avec et sans utilisation du locking \label{fig:Nvsp_complock}}
+			\end{figure}
 		\end{frame}
 
 \section{Multic\oe{}urs}
