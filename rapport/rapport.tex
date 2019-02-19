@@ -125,9 +125,30 @@
 
 	\subsection{Étude de performances théorique}
 		
-		
+		\subsubsection{Objectif en précision ou en itération}
+			
+			La terminaison du programme est donnée par deux critères suivant les paramètres entrée par l'utilisateur :
+			\begin{itemize}
+				\item Un objectif en précision : pour un exposant $p$ donné en argument, le programme termine si les $k$ vecteurs propres ont une précision inférieure à $10^{-p}$.
+				\item Un objectif en itération : pour un entier $i$ donné en entrée, le programme termine si on atteint l'itération $i$.
+			\end{itemize}
+
+			Pour les formules de complexité, on supposera que l'objectif est de $N_{iter}$ itérations, même si en pratique le calcul s'arrête dans le cas où l'objectif en précision est spécifié et atteint avant l'objectif en itération.
+
+		\subsubsection{}
+
+
+			$$
+			C^{tot} = N_{iter} * (C^{mm} + C^{GM} + C^{Proj} + C^{Schur} + C^{mm} + C^{select} + C^{préci})
+			$$
+
+			\paragraph{Produit de matrices :} $C^{mm} = O(N^2)$
+
 
 	\subsection{Étude de performances pratique}
+
+
+
 	\subsection{Ajout d'une méthode de déflation "Locking"}
 		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciler au cours des itérations.
 
