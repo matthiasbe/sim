@@ -45,7 +45,14 @@
 
 \section{Introduction}
 	\begin{frame}{Introduction}
-
+		\begin{block}{Position du problème}
+			\begin{itemize}
+				\item Calcul de vp de grandes matrices creuses $\rightarrow$ matrice de Google.
+				\item Seulement quelques vp dominantes.
+				\item Algorithmes robustes.
+				\item Algorithmes adaptés aux architectures massivement parallèles.
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
 \section{Présentation de l'algorithme}
@@ -192,7 +199,7 @@
 					\item On parallélise les produits matriciels dans l'espace d'origine
 					\item Pragmas devan le boucles parallélisable
 					\item Pas de pénalité de communication
-					\item Performance : $C \leftarrow \frac{C}{N_\text{cores}}$
+					\item Performance : $C \rightarrow \frac{C}{N_\text{cores}}$
 				\end{itemize}
 			\end{block}
 		\end{frame}
