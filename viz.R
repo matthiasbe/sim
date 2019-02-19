@@ -1,14 +1,14 @@
 library("dplyr")
 library("ggplot2")
 
-data = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim_wolock/sim/build/output.csv") %>%
+data = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/build/output.csv") %>%
   as_tibble() %>%
   mutate(eigindex = as.factor(as.character(eigindex)))
 
 data %>%
   filter(iteration > 0) %>%
-  filter(type == "A") %>%
-  ggplot(aes(x = iteration, y = value, color = eigindex)) + geom_path() + geom_point() + scale_y_log10() + ylab("erreur")
+  filter(type == "t") %>%
+  ggplot(aes(x = iteration, y = value)) + geom_path() + geom_point() + ylab("temps")
 
 # data_wlock = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/measures.csv") %>%
 #   as_tibble()
