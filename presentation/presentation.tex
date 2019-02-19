@@ -187,17 +187,24 @@
 \section{Multic\oe{}urs}
 		\subsection{Description}
 		\begin{frame}{Multic\oe{}urs}
-
-		\end{frame}
-
-	\subsection{Performances théoriques}
-		\begin{frame}{Multic\oe{}urs : performances théoriques}
-
+			\begin{block}{Parallélisation OpenMP}
+				\begin{itemize}
+					\item On parallélise les produits matriciels dans l'espace d'origine
+					\item Pragmas devan le boucles parallélisable
+					\item Pas de pénalité de communication
+					\item Performance : $C \leftarrow \frac{C}{N_\text{cores}}$
+				\end{itemize}
+			\end{block}
 		\end{frame}
 
 	\subsection{Performances pratiques}
 		\begin{frame}{Multic\oe{}urs : performances pratiques}
-
+			\begin{figure}
+				\includegraphics[width=0.6\linewidth]{../rapport/plots/omp_perf.pdf}
+				\caption{Nœud avec 8 cœurs hyperthreadés pour un calcul de 4 valeurs propres avec $m = 8$ à $p=\SI{e-8}{}$ \label{fig:omp_perf}}
+			\end{figure}
+			\centering
+			Accélération x7 avec 8 coeurs physiques !
 		\end{frame}
 
 \section{Multin\oe{}uds}
