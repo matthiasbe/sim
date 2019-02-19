@@ -231,18 +231,45 @@
 \section{Multin\oe{}uds}
 	\subsection{Description}
 		\begin{frame}{Multin\oe{}uds}
-
+			\begin{block}{Parallélisation du calcul matriciel $C = AB$}
+				\begin{itemize}
+					\item \textbf{Rank 0} partage les matrices A et B aux autres processus
+					\item \textbf{Tous} calculent une sous-matrice et renvoient le résultat
+					\item \textbf{Rank 0} assemble C
+				\end{itemize}
+			\end{block}
 		\end{frame}
 
 	\subsection{Performances théoriques}
 		\begin{frame}{Performances théoriques}
-
+			On pose $N$ le nombre de processus
+			\begin{block}{Temps de calcul processeur}
+				Chaque c\oe{}ur calcul $\frac{1}{N}$ de la matrice C
+				\center{Accélération \times N}
+			\end{block}
+			\begin{block}{Communication pour un calcul $C = AB$}
+				\begin{itemize}
+					\item \textbf{Aller} : Toute la matrice B en broadcast
+					\item \textbf{Aller} : $\frac{1}{\sqrt{N}}$ de la matrice A pour chaque processus
+					\item \textbf{Retour} : $\frac{1}{N}$ de la matrice C
+				\end{itemize}
+				
+			\end{block}
 		\end{frame}
 
 	\subsection{Performances pratiques}
 
 		\begin{frame}{Multin\oe{}uds : performances pratiques}
-
+			\begin{block}{Sur le supercalculateur poincare}
+				\begin{tabular}{l l l l l l}
+					taches	& noeuds & N & threads & M & temps(s)\\ \hline
+					1 		& 1 & 1473 & 16 & 10 & 4.899005\\
+					4 		& 4 & 1473 & 16 & 10 & 9.844218\\
+					6 		& 1 & 1473 & 16 & 10 & 66.033455\\ \hline
+					1 & 1 & 4929 & 16 & 10 & 29.481719\\
+					4 & 4 & 4929 & 16 & 10 & 82.517647\\
+				\end{tabular}
+			\end{block}
 		\end{frame}
 
 \section{Conclusion}
