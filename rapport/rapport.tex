@@ -83,7 +83,7 @@
 			\caption{Algorithme général}
 			\begin{algorithmic}[1]
 					\State $Q \gets rand()$
-					\While {$i = 0 .. N-1$ OU min(precisions) < p}
+					\While {$i = 0 .. N-1$ OU max(precisions) < p}
 						\State $Z = AQ$
 						\State Gram-Schmidt $Q$
 						\State Projection $B = Z^tAZ$
@@ -91,7 +91,6 @@
 						\State Retour dans l'espace d'origine $Q = ZY$
 						\State Sélection des $k$ vecteur propres
 						\State Calcul de la précision
-						\State Locking
 					\EndWhile
 				\end{algorithmic}
 		\end{algorithm}
@@ -125,9 +124,10 @@
 
 		\subsubsection{Calcul de la précision}
 
-		\subsubsection{Locking}
-
 	\subsection{Étude de performances théorique}
+		
+		
+
 	\subsection{Étude de performances pratique}
 	\subsection{Ajout d'une méthode de déflation "Locking"}
 		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciler au cours des itérations.
