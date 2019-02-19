@@ -45,6 +45,7 @@
 \pagestyle{fancy}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
 
 \definecolor{green}{rgb}{0.2,0.8,0.2}
 
@@ -113,7 +114,9 @@
 						\State $q^{temp}_i \gets q^{temp}_i - q_k(q_k.q_i)$
 						\EndFor
 					\EndFor
-					\State $Q \gets Q^{temp}$
+					\For {$i = 0..m-1$}
+						\State $q_i \gets \frac{q_i^{temp}}{\norm{q_i^{temp}}}$
+					\EndFor
 				\end{algorithmic}
 			\end{algorithm}
 
@@ -127,6 +130,12 @@
 
 		\subsubsection{Calcul de la précision}
 
+			Pour calculer la précision de chaque vecteur propre, on compare le vecteur propre avec son produit par la matrice $A$ donnée en entrée. On donne ci-dessous la formule pour le vecteur propre i.
+
+			$$
+			p_i = \norm{Av-\lambda v}
+			$$
+
 	\subsection{Étude de performances théorique}
 		
 		\subsubsection{Objectif en précision ou en itération}
@@ -139,14 +148,38 @@
 
 			Pour les formules de complexité, on supposera que l'objectif est de $N_{iter}$ itérations, même si en pratique le calcul s'arrête dans le cas où l'objectif en précision est spécifié et atteint avant l'objectif en itération.
 
-		\subsubsection{}
+		\subsubsection{Calcul de complexité}
 
+			Exprimons la complexité totale de l'algorithme des itérations simultanées sous le forme de la somme des complexités des opérations qui le composent.
 
 			$$
-			C^{tot} = N_{iter} * (C^{mm} + C^{GM} + C^{Proj} + C^{Schur} + C^{mm} + C^{select} + C^{préci})
+			C^{tot} = N_{iter} (C^{AQ} + C^{GM} + C^{Proj} + C^{Schur} + C^{mm} + C^{select} + C^{preci})
 			$$
 
-			\paragraph{Produit de matrices :} $C^{mm} = O(N^2)$
+			Détaillons maintenant chaque terme de cette somme.
+
+			\paragraph{Produit $AQ$ :} On effectue le produit de $A \in \mathbb{R}^{N\times N}$ par $Q \in \mathbb{R}^{N \times M}$. On a donc la complexité
+			$$C^{AQ} = O(N^2M)$$
+
+			\paragraph{Procédé de Gram-Schmidt :} L'algorithme de Gram-Schmidt se décompose en deux étape indépendantes :
+			\begin{itemize}
+				\item l'othogonalisation consiste à un produit scalaire entre de vecteur de taille N dans une double boucle couvrant l'intervalle $\{(i,j) | i \in [0,M-1] et j \in [O,i]\}$. Le cardinal de cet intervalle est $(M)log(M)$, ce qui donne une complexité $O(NMlog(M))$ pour l'orthogonalisation
+				\item la normalisation consiste en $M-1$ produits scalaires de vecteurs de taille N, ce qui donne une complexité $O(NM)$ pour la normalisation.
+			\end{itemize}		
+			La complexité pour le procédé de Gram-Schmidt est donc
+			
+			$$C^{GM} = O(NMlog(M))$$
+
+			\paragraph{Projection :} Il s'agit d'un produit entre la matrice $Z^t \in \mathbb{R}^{M\times N}$ et la matrice $A \in \mathbb{R}^{N\times N}$ puis un produit entre la matrice résultante et la matrice $Z$. Ces produits matriciels on tous les deux la complexité $O(MN^2)$. Ce qui donne une complexité pour l'étape de projection
+			
+			$$C^{Proj} = C^{mm} = O(N^2M)$$
+
+			\paragraph{Décomposition de Schur :} La décomposition de Schur est effectué sur l'espace de taille $M \times N$. Comme on a $N \gg M$ on peut négliger la complexité introduit par cette étape du calcul. Donc
+
+			$$C^{Schur} \approx 0$$
+
+			\paragraph{Sélection} $C^{select} = O(N)$
+			\paragraph{Précision} $C^{preci} = O(N)$
 
 
 	\subsection{Étude de performances pratique}
