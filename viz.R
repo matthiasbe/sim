@@ -8,7 +8,7 @@ data = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim_wolock/sim/build/output.
 data %>%
   filter(iteration > 0) %>%
   filter(type == "A") %>%
-  ggplot(aes(x = iteration, y = value, color = eigindex)) + geom_path() + scale_y_log10() + ylab("erreur")
+  ggplot(aes(x = iteration, y = value, color = eigindex)) + geom_path() + geom_point() + scale_y_log10() + ylab("erreur")
 
 # data_wlock = read.csv("/home/pgranger/Documents/CHPS/MPNA/sim/measures.csv") %>%
 #   as_tibble()
@@ -17,6 +17,6 @@ data %>%
 #   as_tibble()
 # 
 # bind_rows("wlock" = data_wlock, "wolock" = data_wolock, .id = "id") %>%
-#   filter(e == 8, m == 8) %>%
-#   mutate(id = as.factor(id)) %>%
-#   ggplot(aes(x = p, y = N, color = id)) + geom_path() + geom_point()
+#   filter(e == 4) %>%
+#   mutate(id = as.factor(id), m = as.factor(m)) %>%
+#   ggplot(aes(x = p, y = N, color = id)) + geom_path() + geom_point() + facet_wrap(~m)
