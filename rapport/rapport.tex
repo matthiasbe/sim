@@ -79,8 +79,8 @@
 			\item $M$ : taille du sous-espace de Krylov
 			\item $k$ : nombre de vecteurs propres demandé
 			\item $p$ : précision demandé
-			\item $A$ : matrice de taille $n\times n$ donnée en entrée
-			\item $N$ : nombre d'itérations
+			\item $A$ : matrice de taille $N\times N$ donnée en entrée
+			\item $N_{iter}$ : nombre d'itérations
 		\end{itemize}
 		\vspace{1cm}
 		L'algorithme \ref{alg:global} détaille l'implémentation globale de la méthode des itérations simultanées.
@@ -97,7 +97,7 @@
 						\State Décomposition de Schur $B = Y^tRY$
 						\State Retour dans l'espace d'origine $Q = ZY$
 						\State Calcul de la précision des vecteurs de $Q$
-						\State Sélection des $k$ vecteur propres
+						\State Sélection des $k$ vecteurs propres
 					\EndWhile
 				\end{algorithmic}
 		\end{algorithm}

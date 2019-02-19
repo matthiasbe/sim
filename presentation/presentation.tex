@@ -17,6 +17,9 @@
 \usepackage{fancyhdr}
 \usepackage{siunitx}
 \usepackage[mode=buildnew]{standalone}
+\usepackage{algorithmicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 
 % Here's where the presentation starts, with the info for the title slide
@@ -40,8 +43,8 @@
 	\tableofcontents[hideallsubsections]
 \end{frame}
 
-\section{Intro}
-	\begin{frame}{Frame}
+\section{Introduction}
+	\begin{frame}{Introduction}
 
 	\end{frame}
 
@@ -52,13 +55,45 @@
 
 \section{Séquentiel}
 	\subsection{Description}
+		\begin{frame}{Données d'entrée}
+			\begin{itemize}
+				\item $M$ : taille du sous-espace de Krylov
+				\item $k$ : nombre de vecteurs propres demandé
+				\item $p$ : précision demandé
+				\item $A$ : matrice de taille $N\times N$ donnée en entrée
+				\item $N_{iter}$ : nombre d'itérations
+			\end{itemize}
+		\end{frame}
 		\begin{frame}{Description de l'algorithme}
-
+			\begin{algorithmic}
+				\State $Q \gets rand()$
+				\While {$i = 0 .. N_{iter}-1$ OU max(precisions) < p}
+					\State $Z = AQ$
+					\State Gram-Schmidt $Q$
+					\State Projection $B = Z^tAZ$
+					\State Décomposition de Schur $B = Y^tRY$
+					\State Retour dans l'espace d'origine $Q = ZY$
+					\State Calcul de la précision des vecteurs de $Q$
+					\State Sélection des $k$ vecteurs propres
+				\EndWhile
+			\end{algorithmic}
 		\end{frame}
 
 	\subsection{Performances théoriques}
 		\begin{frame}{Performances théoriques}
+			\begin{tabular}{ l l }
+				Produit $AQ$ & $O(N^2M)$ \\
+				Gram-Schmidt & $O(NMlog(M))$ \\
+				Projection & $O(N^2M)$ \\
+				Décomposition de Schur & $O(1)$ \\
+				Précision & $O(NM^2)$ \\
+				Sélection & $O(1)$ \\
+			\end{tabular}
 
+			
+			$$
+			\fbox{$C^{tot} = O(N_{iter}N^2M)$}
+			$$
 		\end{frame}
 
 	\subsection{Performances pratiques}
