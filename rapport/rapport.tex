@@ -61,9 +61,12 @@
 \newpage
 
 \section{Introduction et position du problème}
-	De nombreux problèmes modernes impliquent le calcul de valeurs propres et de vecteurs propres de grandes matrices creuses. Par exemple, ce problème peut être rencontré lors de l'étude de certains systèmes physiques ou bien par exemple dans les moteurs de recherche qui reposent sur ce type de technique. Des algorithmes spécifiques doivent être utilisés afin de résoudre ces problèmes de valeur propre en un temps raisonnable. De plus les algorithmes utilisés doivent pouvoir être facilement utilisés sur les architectures massivement parallèles actuelles ce qui représente un grand défi.
+	De nombreux problèmes modernes impliquent le calcul de valeurs propres et de vecteurs propres de grandes matrices creuses. Souvent, on ne désire que les quelques valeurs propres dominantes de la matrice et on souhaite utiliser une méthode robuste et efficace. Par exemple, ce problème peut être rencontré lors de l'étude de certains systèmes physiques ou bien par exemple dans les moteurs de recherche qui reposent sur ce type de technique. Des algorithmes spécifiques doivent être utilisés afin de résoudre ces problèmes de valeur propre en un temps raisonnable. De plus les algorithmes utilisés doivent pouvoir être facilement utilisés sur les architectures massivement parallèles actuelles ce qui représente un grand défi.
 
 \section{Approche utilisée}
+	Afin d'effectuer le calcul d'un petit nombre de vecteurs propres dominants d'une grande matrice, on se propose d'implémenter en langage \textbf{C} l'algorithme des itérations simultanées aussi appelé algorithme d'itération du sous-espace.
+	L'algorithme des itérations simultanées est basé sur la méthode de la puissance qui consiste à extraire la valeur propre principale d'une matrice en multipliant un grand nombre $N$ de fois un vecteur initial par la matrice d'intérêt $A$. On s'attend alors à voir converger le vecteur vers le vecteur propre dominant de $A$ à la vitesse $\left(\frac{\lambda_1}{\lambda_2}\right)^N$ avec $\lambda_1$ la valeur propre dominante et $\lambda_2$ la seconde valeur propre dominante.
+	La méthode des itérations simultanées permet de calculer un espace invariant par $A$ de dimension $k > 1$ et ainsi d'extraire les $k$ valeurs propres dominantes plutôt qu'un seule. Cette méthode est une généralisation de la méthode de la puissance dans laquelle on orthonormalise à chaque étape le sous-espace que l'on souhaite faire converger avant de le multiplier par $A$ et de continuer les itérations successives. On choisit dans notre implémentation d'utiliser un sous espace de dimension $m\times m\:,\: m > k$ afin d'obtenir une meilleure convergence des valeurs propres. On effectue une projection dans le sous-espace de Krylov de dimension $m\times m$ dans lequel on utilise la librairie \textbf{LAPACKE} afin d'extraire les valeurs et vecteurs propres dans le sous-espace de Krylov avant de revenir dans l'espace d'origine et de calculer les vecteurs propres et valeurs propres qui correspondent par un changement de base. L'algorithme détaillé est présenté ci-après.
 
 \section{Cas séquentiel}
 
@@ -75,7 +78,7 @@
 			\item $m$ : taille du sous-espace de Krylov
 			\item $k$ : nombre de vecteurs propres demandé
 			\item $p$ : précision demandé
-			\item $A$ : matrice de taille $n*n$ donnée en entrée
+			\item $A$ : matrice de taille $n\times n$ donnée en entrée
 			\item $N$ : nombre d'itérations
 		\end{itemize}
 
@@ -161,7 +164,11 @@
 	\subsection{Approche utilisée}
 		Maintenant que nous avons correctement pu tester notre code séquentiel et valider les résultats que nous obtenons avec, nous nous attachons à paralléliser notre implémentation. Tout d'abord, il faut remarquer que nous effectuons des calculs dans deux espaces vectoriels différents : dans l'espace d'origine $\mathbb{R}^{N\times N}$ et dans le sous-espace de Krylov $\mathbb{R}^{m\times m}$. Les calculs les plus couteux sont donc bien évidemment ceux effectués dans l'espace d'origine qui est une dimension largement supérieure à celle du sous-espace de Krylov. Les calculs qu'il est donc nécessaire de paralléliser sont ceux effectués dans l'espace d'origine ainsi que les changements de base pour passer de l'espace d'origine au sous-espace de Krylov. Les calculs à paralléliser sont donc les produits matrice/matrice dans l'espace d'origine.
 
-		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à OpenMP car la plupart des calculs sont indépedants lors du produit matriciel et que l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités en temps de communication.
+		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à \textbf{OpenMP} car la plupart des calculs sont indépendants lors du produit matriciel et que l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités en temps de communication. On réalise donc cet ajout d'OpenMP à l'aide de l'ajout de pragmas devant les boucles de notre code qui peuvent être parallélisés. Les gains en performance apportés par OpenMP sont représentées sur la figure \ref{fig:omp_perf}. On peut observer que l'on gagne un facteur d'accélération de 7 en utilisant 8 coeurs physiques ce qui est très important. Cela montre que notre code est fortement parallélisable et que peu de temps de calcul est utilisé lors des parties séquentielles. On peut ensuite observer sur la figures que lorsque l'on utilise des coeurs logiques hyperthreadés supplémentaires les performances sont dégradées avant de s'aéliorer lorsque leur nombre augmente. Ceci est logique car les coeurs hyperthreadés ne possèdent pas leurs propres modules pour effectuer les opérations et ne proposent donc pas une bonne accélération lorsque le code est fortement parallélisable.
+		\begin{figure}
+			\includegraphics[width=\linewidth]{plots/omp_perf.pdf}
+			\caption{Evolution de l'efficacité de l'implémentation en fonction du nombre de threads OpenMP utilisés sur un noeud avec 8 coeurs hyperthreadés pour un calcul de 4 valeurs propres avec $m = 8$ à $p=\SI{e-8}{}$ \label{fig:omp_perf}}
+		\end{figure}
 
 	\subsection{Étude de performances théorique}
 	\subsection{Étude de performances pratique}
