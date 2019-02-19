@@ -55,14 +55,14 @@
 	{\LARGE\centering Projet de MPNA :\\ Méthode des itérations simultanées}\\[1cm]
 
 	{ Matthias \bsc{Beaupère}, Pierre \bsc{Granger}}\\[0.5cm]
-	{Rapport MPNA - CHPS - \today}
+	{Rapport MPNA - CHPS - \today}\\[2cm]
 \end{center}
 
 \tableofcontents
+\newpage
 
-\section{Introduction}
-
-\section{Problématique}
+\section{Introduction et position du problème}
+	De nombreux problèmes modernes impliquent le calcul de valeurs propres et de vecteurs propres de grandes matrices creuses. Par exemple, ce problème peut être rencontré lors de l'étude de certains systèmes physiques ou bien par exemple dans les moteurs de recherche qui reposent sur ce type de technique. Des algorithmes spécifiques doivent être utilisés afin de résoudre ces problèmes de valeur propre en un temps raisonnable. De plus les algorithmes utilisés doivent pouvoir être facilement utilisés sur les architectures massivement parallèles actuelles ce qui représente un grand défi.
 
 \section{Approche utilisée}
 
@@ -191,13 +191,21 @@
 	\subsection{Conclusions}
 
 \section{Cas parallèle}
-	
 	\subsection{Approche utilisée}
+		Maintenant que nous avons correctement pu tester notre code séquentiel et valider les résultats que nous obtenons avec, nous nous attachons à paralléliser notre implémentation. Tout d'abord, il faut remarquer que nous effectuons des calculs dans deux espaces vectoriels différents : dans l'espace d'origine $\mathbb{R}^{N\times N}$ et dans le sous-espace de Krylov $\mathbb{R}^{m\times m}$. Les calculs les plus couteux sont donc bien évidemment ceux effectués dans l'espace d'origine qui est une dimension largement supérieure à celle du sous-espace de Krylov. Les calculs qu'il est donc nécessaire de paralléliser sont ceux effectués dans l'espace d'origine ainsi que les changements de base pour passer de l'espace d'origine au sous-espace de Krylov. Les calculs à paralléliser sont donc les produits matrice/matrice dans l'espace d'origine.
+
+		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à OpenMP car la plupart des calculs sont indépedants lors du produit matriciel et que l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités en temps de communication.
+
 	\subsection{Étude de performances théorique}
 	\subsection{Étude de performances pratique}
 	\subsection{Conclusions}
 
 \section{Conclusion générale}
+
+	Nous avons pu implémenter la méthode des itérations simultanées afin de calculer les valeurs et vecteurs propres d'une grande matrice creuse. Nous avons ensuite tenté d'améliorer l'algorithme initialement proposé en introduisant le "locking" permettant de modifier les paramètres de redémarrage afin de gagner à la fois en temps de calcul et en stabilité numérique de la convergence. Nous avons pu constater que l'ajout du locking a effectivement permis d'augmenter l'efficacité et la précision de notre implémentation. Nous avons aussi implémenté un conditionnement simpliste des matrices en entrée afin de résoudre certains problèmes de stabilité numérique dans le cas de matrices mal conditionnées en entrée.
+
+	Nous nous sommes ensuite proposés de paralléliser notre programme à l'aide de deux outils : OpenMP et MPI. Nous avons tout d'abord effectué la parallélisation des boucles avec OpenMP puis nous avons implémenté les produits de matrices couteux en MPI. Nous avons pu tester notre code parallèle sur le cluster poincare à la maison de la simulation. Les résultats furent assez décevants car notre parallélisation MPI a augmenté les temps de calcul à cause des coups trop élevés des transferts de données. Nous en concluons que la parallélisation efficace de ce type d'algoithme doit plutôt reposer sur l'implémentation de méthodes hybrides.
+
 
 % FIGURES A AJOUTER
 \begin{figure}
@@ -242,8 +250,10 @@
 		\includegraphics[width=\linewidth, keepaspectratio]{plots/wolock_e4_p8_m8.pdf}
 		\caption{Sans locking\label{wolock_e4_p8_m8}}
 	\end{subfigure}
-	\caption{Précision au cours des itérations $N$ pour $e = 4$ valeurs propres pour une taille de sous-espace de Krylov $m=8$\label{fig:Nvsp-m_e4}}
+	\caption{Précision au cours des itérations $N$ pour $e = 4$ valeurs propres pour une taille de sous-espace de Krylov $m=8$\label{fig:comp_locks}}
 \end{figure}
+
+On représente sur la figure \ref{fig:comp_locks} la précision au cours des itérations pour $e$ et $m$ fixés dans le cas de la méthode initiale et de la méthode avec locking. On peut tout d'abord observer que la convergence est bien plus rapide lorsque le locking est utilisé (environ 2000 contre 3800 itérations). On peut en outre constater sur la figure \ref{wlock_e4_p8_m8} que la convergence avec locking semble moins instable.
 
 
 % \bibliographystyle{unsrt}
