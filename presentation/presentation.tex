@@ -1,0 +1,48 @@
+\documentclass[9.5pt]{beamer}
+
+\mode<presentation>
+{
+  \usetheme{Warsaw}       % or try default, Darmstadt, Warsaw, ...
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{serif}    % or try default, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+} 
+
+\usepackage[utf8]{inputenc} % accents 8 bits dans le fichier
+\usepackage[T1]{fontenc}      % accents codés dans la fonte
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{siunitx}
+\usepackage[mode=buildnew]{standalone}
+
+
+% Here's where the presentation starts, with the info for the title slide
+\title[GLCS : Projet simulation de chaleur]{Présentation GLCS \\Projet simulation de chaleur}
+\author[\bsc{Beaupère} \& \bsc{Granger}]{Matthias \bsc{Beaupère} \& Pierre \bsc{Granger}}
+\institute{M2 CHPS}
+\date{\today}
+
+\begin{document}
+\setbeamercolor{captioncolor}{fg=white,bg=red!80!white}
+\setbeamertemplate{caption}{%
+\begin{beamercolorbox}[wd=0.8\linewidth, sep=.2ex]{captioncolor}\tiny\centering\insertcaption%
+\end{beamercolorbox}%
+}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Plan}
+	\tableofcontents
+\end{frame}
+
+\section{Intro}
+	\begin{frame}{Frame}
+
+	\end{frame}
+
+\end{document}
