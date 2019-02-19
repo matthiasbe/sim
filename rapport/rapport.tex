@@ -107,7 +107,7 @@
 
 		\subsubsection{Procédé de Gram-Schmidt}
 
-		On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'ortogonalisation consiste à ajouter chaque vecteur de la matrice $Z$ dans une vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme. L'implémentation est présenté dans l'algorithme \ref{alg:gm}.
+		On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'orthogonalisation revient à ajouter chaque vecteur de la matrice $Z$ dans une vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme. L'implémentation est présenté dans l'algorithme \ref{alg:gm}.
 
 			\begin{algorithm}
 				\begin{algorithmic}[1]
@@ -174,7 +174,7 @@
 
 			\paragraph{Procédé de Gram-Schmidt :} L'algorithme de Gram-Schmidt se décompose en deux étape indépendantes :
 			\begin{itemize}
-				\item l'othogonalisation consiste à un produit scalaire entre de vecteur de taille N dans une double boucle couvrant l'intervalle $\{(i,j) | i \in [0,M-1] et j \in [O,i]\}$. Le cardinal de cet intervalle est $(M)log(M)$, ce qui donne une complexité $O(NMlog(M))$ pour l'orthogonalisation
+				\item l'orthogonalisation consiste en un produit scalaire entre de vecteur de taille N dans une double boucle couvrant l'intervalle $\{(i,j) | i \in [0,M-1] et j \in [O,i]\}$. Le cardinal de cet intervalle est $(M)log(M)$, ce qui donne une complexité $O(NMlog(M))$ pour l'orthogonalisation
 				\item la normalisation consiste en $M-1$ produits scalaires de vecteurs de taille N, ce qui donne une complexité $O(NM)$ pour la normalisation.
 			\end{itemize}		
 			La complexité pour le procédé de Gram-Schmidt est donc
@@ -226,31 +226,41 @@
 
 
 	\subsection{Ajout d'une méthode de déflation "Locking"}
-		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciler au cours des itérations.
+		Toutes les valeurs propres de la matrice possèdent une vitesse de convergence différente par la méthode des itérations simultanées. Cela nous amène à affiner et recalculer constamment des vecteurs déjà connus avec la bonne précision ce qui entraine une perte de temps de calcul. De plus, des vecteurs propres qui ont déjà convergés jusqu'à la bonne précision peuvent perdre en précision à cause d'instabilités numériques au fil des calculs : la précision de certains vecteurs propres peut osciller au cours des itérations.
 
-		Afin de résoudre ces deux problèmes nous avons décidé de mettre en place une méthode de déflation appelée "locking". Le principe est simple : lorsqu'un vecteur propre a convergé jusqu'à la précision désirée, on le verrouille de sorte à ne plus le remultiplier par la matrice $A$ et on diminue la taille du sous-espace de Krylov d'une unité. Néanmoins, on utilise toujours ce vecteur pour l'orthonormalisation afin qu'il guide la convergence correcte des veteurs restants.
+		Afin de résoudre ces deux problèmes nous avons décidé de mettre en place une méthode de déflation appelée "locking". Le principe est simple : lorsqu'un vecteur propre a convergé jusqu'à la précision désirée, on le verrouille de sorte à ne plus le remultiplier par la matrice $A$ et on diminue la taille du sous-espace de Krylov d'une unité. Néanmoins, on utilise toujours ce vecteur pour l'orthonormalisation afin qu'il guide la convergence correcte des vecteurs restants.
 
 	\subsection{Conclusions}
 
 \section{Cas parallèle}
 	\subsection{Approches utilisées}
-		Maintenant que nous avons correctement pu tester notre code séquentiel et valider les résultats que nous obtenons avec, nous nous attachons à paralléliser notre implémentation. Tout d'abord, il faut remarquer que nous effectuons des calculs dans deux espaces vectoriels différents : dans l'espace d'origine $\mathbb{R}^{N\times N}$ et dans le sous-espace de Krylov $\mathbb{R}^{m\times m}$. Les calculs les plus couteux sont donc bien évidemment ceux effectués dans l'espace d'origine qui est une dimension largement supérieure à celle du sous-espace de Krylov. Les calculs qu'il est donc nécessaire de paralléliser sont ceux effectués dans l'espace d'origine ainsi que les changements de base pour passer de l'espace d'origine au sous-espace de Krylov. Les calculs à paralléliser sont donc les produits matrice/matrice dans l'espace d'origine.
 
-		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à \textbf{OpenMP} car la plupart des calculs sont indépendants lors du produit matriciel et que l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités en temps de communication. On réalise donc cet ajout d'OpenMP à l'aide de l'ajout de pragmas devant les boucles de notre code qui peuvent être parallélisés. Les gains en performance apportés par OpenMP sont représentées sur la figure \ref{fig:omp_perf}. On peut observer que l'on gagne un facteur d'accélération de 7 en utilisant 8 coeurs physiques ce qui est très important. Cela montre que notre code est fortement parallélisable et que peu de temps de calcul est utilisé lors des parties séquentielles. On peut ensuite observer sur la figures que lorsque l'on utilise des coeurs logiques hyperthreadés supplémentaires les performances sont dégradées avant de s'aéliorer lorsque leur nombre augmente. Ceci est logique car les coeurs hyperthreadés ne possèdent pas leurs propres modules pour effectuer les opérations et ne proposent donc pas une bonne accélération lorsque le code est fortement parallélisable.
-		\begin{figure}
-			\includegraphics[width=\linewidth]{plots/omp_perf.pdf}
-			\caption{Evolution de l'efficacité de l'implémentation en fonction du nombre de threads OpenMP utilisés sur un noeud avec 8 coeurs hyperthreadés pour un calcul de 4 valeurs propres avec $m = 8$ à $p=\SI{e-8}{}$ \label{fig:omp_perf}}
-		\end{figure}
+	\subsubsection{Approche multic\oe{}ur}
+
+		Maintenant que nous avons correctement pu tester notre code séquentiel et valider les résultats obtenus, nous nous attachons à paralléliser notre implémentation. Tout d'abord, il faut remarquer que nous effectuons des calculs dans deux espaces vectoriels différents : dans l'espace d'origine $\mathbb{R}^{N\times N}$ et dans le sous-espace de Krylov $\mathbb{R}^{m\times m}$. Les calculs les plus couteux sont donc bien évidemment ceux effectués dans l'espace d'origine qui est une dimension largement supérieure à celle du sous-espace de Krylov. Les calculs qu'il est donc nécessaire de paralléliser sont ceux effectués dans l'espace d'origine ainsi que les changements de base pour passer de l'espace d'origine au sous-espace de Krylov. Les calculs à paralléliser sont donc les produits matriciels dans l'espace d'origine.
+
+		Afin de paralléliser les produits matriciels, on commence par l'implémentation la plus simple et la plus efficace qui consiste à effectuer une parallélisation en mémoire partagée grâce à \textbf{OpenMP}. En effet, la plupart des calculs sont indépendants lors du produit matriciel et l'on peut gérer efficacement les réductions. De plus, puisque la mémoire est partagée, il n'y a pas de pénalités de communication. On réalise cet ajout d'OpenMP à l'aide d'instructions pragmas devant les boucles qui peuvent être parallélisées.
+		
+		
 
 	\subsection{Étude de performances théorique}
 	\subsection{Étude de performances pratique}
+
+		\subsubsection{Approche parallèle}
+		
+			Les gains en performance apportés par OpenMP sont représentés sur la figure \ref{fig:omp_perf}. On peut observer que l'on gagne un facteur 7 d'accélération en utilisant 8 cœurs physiques ce qui est très important. Cela montre que notre code est fortement parallélisable, c'est à dire que les parties séquentielles ne représente qu'une petite proportion du temps de calcul. On peut ensuite observer sur la figure que lorsque l'on utilise des cœurs logiques hyperthreadés supplémentaires les performances sont dégradées avant de s'améliorer lorsque leur nombre augmente. Ceci est logique car les cœurs hyperthreadés ne possèdent pas leurs propres modules pour effectuer les opérations et ne proposent donc pas une bonne accélération lorsque le code est fortement parallélisable.
+
+			\begin{figure}
+				\includegraphics[width=\linewidth]{plots/omp_perf.pdf}
+				\caption{Évolution de l'efficacité de l'implémentation en fonction du nombre de threads OpenMP utilisés sur un nœud avec 8 cœurs hyperthreadés pour un calcul de 4 valeurs propres avec $m = 8$ à $p=\SI{e-8}{}$ \label{fig:omp_perf}}
+			\end{figure}
 	\subsection{Conclusions}
 
 \section{Conclusion générale}
 
 	Nous avons pu implémenter la méthode des itérations simultanées afin de calculer les valeurs et vecteurs propres d'une grande matrice creuse. Nous avons ensuite tenté d'améliorer l'algorithme initialement proposé en introduisant le "locking" permettant de modifier les paramètres de redémarrage afin de gagner à la fois en temps de calcul et en stabilité numérique de la convergence. Nous avons pu constater que l'ajout du locking a effectivement permis d'augmenter l'efficacité et la précision de notre implémentation. Nous avons aussi implémenté un conditionnement simpliste des matrices en entrée afin de résoudre certains problèmes de stabilité numérique dans le cas de matrices mal conditionnées en entrée.
 
-	Nous nous sommes ensuite proposés de paralléliser notre programme à l'aide de deux outils : OpenMP et MPI. Nous avons tout d'abord effectué la parallélisation des boucles avec OpenMP puis nous avons implémenté les produits de matrices couteux en MPI. Nous avons pu tester notre code parallèle sur le cluster poincare à la maison de la simulation. Les résultats furent assez décevants car notre parallélisation MPI a augmenté les temps de calcul à cause des coups trop élevés des transferts de données. Nous en concluons que la parallélisation efficace de ce type d'algoithme doit plutôt reposer sur l'implémentation de méthodes hybrides.
+	Nous nous sommes ensuite proposés de paralléliser notre programme à l'aide de deux outils : OpenMP et MPI. Nous avons tout d'abord effectué la parallélisation des boucles avec OpenMP puis nous avons implémenté les produits de matrices couteux en MPI. Nous avons pu tester notre code parallèle sur le cluster poincare à la maison de la simulation. Les résultats furent assez décevants car notre parallélisation MPI a augmenté les temps de calcul à cause des coups trop élevés des transferts de données. Nous en concluons que la parallélisation efficace de ce type d'algorithme doit plutôt reposer sur l'implémentation de méthodes hybrides.
 
 
 % FIGURES A AJOUTER
