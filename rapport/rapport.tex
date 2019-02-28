@@ -340,13 +340,48 @@
 
 	\subsection{Étude de performances théorique}
 
-		\subsubsection{Approche multico\oe{}urs}
+		\subsubsection{Approche multic\oe{}urs}
+
+		En utilisant OpenMP en mémoire partagée pour un n\oe{}ud de $N$ c\oe{}urs, on atteint théoriquement un accélération égale à $N$. On suppose en effet que l'on peut négliger les effets d'overhead introduits par OpenMP car les boucles parallélisées sont très longues.
+
+		On a donc un temps d'exécution divisé par le nombre de c\oe{}urs.
 
 		\subsubsection{Approche multi-n\oe{}uds}
 
+			Considérons le produit matriciel $C = AB$ avec des matrice carrées de taille $n$. Cela est généralisable à des matrices rectangulaires.
+
+			On étudie l'accélération théorique en passant de l'utilisation d'une unique n\oe{}ud à l'utilisation de $N$ n\oe{}ud grâce à MPI.
+			\paragraph{Conséquence sur le temps de calcul des produits matriciels :}
+				Chaque c\oe{}ur calcule $\frac{1}{N}$ de la matrice C, on divise donc par $N$ le temps de calcul d'un produit matriciel.
+
+			\paragraph{Impact du temps de communications}
+				Les n\oe{}uds MPI doivent avant et après chaque produit matriciel échanger les matrices concernées avec le n\oe{}ud principal. On a les échanges suivant avec le n\oe{}ud principal :
+				\begin{itemize}
+					\item \textbf{Avant} : Toute la matrice B en broadcast
+					\item \textbf{Avant} : $\frac{1}{\sqrt{N}}$ de la matrice A pour chaque processus
+					\item \textbf{Après} : $\frac{1}{N}$ de la matrice C pour chaque processus
+				\end{itemize}
+
+				On communique uniquement $\frac{1}{\sqrt{N}}$ de la matrice A pour chaque processus car le calcul de la sous-matrice $C_{i..k,j..l}$ nécessite les sous-matrices $A_{i..k,0..n}$ et $B_{0..n,j..l}$. Comme les matrice sont stockées par ligne dans notre programme nous n'avons pu faire cette optimisation que pour la matrice A, la matrice B étant donc envoyée en broadcast.
+
+			On a un temps d'exécution théorique qui est le temps de calcul divisé par $N$ additionné au temps de communication.
+
+			$$
+			\fbox{$t^{par} = \frac{t^{seq}}{N} + t^{com}$}
+			$$
+
+			Avec
+			\begin{itemize}
+				\item $t^{par}$ temps d'exécution du produit matriciel avec MPI
+				\item $t^{seq}$ temps d'exécution du produit matriciel sans MPI
+				\item $t^{com}$ temps de communication lors du calcul matriciel
+
+			\end{itemize}
+			
+
 	\subsection{Étude de performances pratique}
 
-		\subsubsection{Approche multico\oe{}urs}
+		\subsubsection{Approche multic\oe{}urs}
 		
 			Les gains en performance apportés par OpenMP sont représentés sur la figure \ref{fig:omp_perf}. On peut observer que l'on gagne un facteur 7 d'accélération en utilisant 8 cœurs physiques ce qui est très important. Cela montre que notre code est fortement parallélisable, c'est à dire que les parties séquentielles ne représente qu'une petite proportion du temps de calcul. On peut ensuite observer sur la figure que lorsque l'on utilise des cœurs logiques hyperthreadés supplémentaires les performances sont dégradées avant de s'améliorer lorsque leur nombre augmente. Ceci est logique car les cœurs hyperthreadés ne possèdent pas leurs propres modules pour effectuer les opérations et ne proposent donc pas une bonne accélération lorsque le code est fortement parallélisable.
 
@@ -356,6 +391,35 @@
 			\end{figure}
 
 		\subsubsection{Approche multi-n\oe{}uds}
+
+			Le tableau de la figure \ref{res-mpi} donne les résultats de l'exécution de programme avec l'utilisation de plusieurs n\oe{}uds. Deux matrices carrées différentes ont été utilisée : la première de taille 1473 et la deuxième de taille 4929. Toutes deux proviennent de la base Matrice Market.
+		
+			Les grandeurs renseignées sont les suivantes :
+			\begin{itemize}
+				\item taches : Nombre de processus MPI lancés.
+				\item n\oe{}uds : Nombre de n\oe{}uds du cluster réservés.
+				\item N : Taille de la matrice.
+				\item threads : Nombre de threads OpenMP configurés.
+				\item M : Taille du sous-espace de Krylov.
+				\item temps : Temps d'exécution total du programme en secondes.
+			\end{itemize}
+
+			\begin{figure}
+				\begin{center}
+					\begin{tabular}{l l l l l l}
+						taches	& noeuds & N & threads & M & temps (s)\\ \hline
+						1 		& 1 & 1473 & 16 & 10 & 4.899005\\
+						4 		& 4 & 1473 & 16 & 10 & 9.844218\\
+						6 		& 1 & 1473 & 16 & 10 & 66.033455\\ \hline
+						1 & 1 & 4929 & 16 & 10 & 29.481719\\
+						4 & 4 & 4929 & 16 & 10 & 82.517647\\
+					\end{tabular}
+				\end{center}
+				\caption{Résultats de l'exécution de la version MPI du programme sur le cluster Poincaré}
+				\label{res-mpi}
+			\end{figure}
+
+			
 
 	\subsection{Conclusions}
 
