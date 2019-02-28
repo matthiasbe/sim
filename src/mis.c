@@ -371,31 +371,22 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
     matrix_product(N, N, M, A, q, Z, comm);
 
     for(int n = 0; n < iter; n++) {
-     	// measure_accuracy(N, M, q, A, accuracies, comm);
 
 		// QR decomposition V = Z R
 		transpose(N, M, Z, Zt);
         orthonormalize(M, N, Zt);
         transpose(M, N, Zt, Z);
         
-        // printf("=====Z ORTHONORMALIZED=====\n");
-        // print_matrix(N, M, Z);
-        // printf("===========================\n");
 
 
         double B[krylov_size][krylov_size];
    		double H[krylov_size][krylov_size];
    		double Zcropped[N][krylov_size];
 		// B = Zt A Z
-        // projection(N, M, A, Z, B, comm);
+
         crop_columns(N, M, krylov_size, lock_idx, Z, Zcropped);
-        // printf("=====Z CROPPED=====\n");
-        // print_matrix(N, krylov_size, Zcropped);
-        // printf("===========================\n");
+
         projection_wlock(N, krylov_size, A, Zcropped, B, lock_idx);
-        // printf("=====B=====\n");
-        // print_matrix(krylov_size, krylov_size, B);
-        // printf("===========================\n");
 
         //Factorisation de Schur LAPACK B = Yt R Y
         double *tau = (double *) malloc(sizeof(double)*(krylov_size-1));
@@ -417,13 +408,9 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		// Qk = ZY is the new approx of eigenvectors
 		double qcropped[N][krylov_size];
         matrix_product(N, krylov_size, krylov_size, Zcropped, Q, qcropped, comm);
-        // printf("=====q CROPPED=====\n");
-        // print_matrix(N, krylov_size, qcropped);
-        // printf("===========================\n");
+
         merge_in(N, M, krylov_size, q, qcropped);
-        // printf("=====q MERGED=====\n");
-        // print_matrix(N, M, q);
-        // printf("===========================\n");
+
         free(tau);
         free(wi);
         free(Q);
@@ -435,19 +422,16 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 
 		// V = A * Q
         matrix_product_wlock(N, N, M, A, q, Z, lock_idx);
-        // printf("=====NEW Z=====\n");
-        // print_matrix(N, M, Z);
-        // printf("===========================\n");
+
 
 		estimate_errors(N, M, q, Z, eigen_real, accuracies, lock_idx);
-		// print_matrix(1, M, eigen_real);
 		double accuracies_sorted[M];
 		for (int i = 0; i < M; ++i)
 		{
 			accuracies_sorted[i] = accuracies[i];
 		}
     	qsort(accuracies_sorted, M, sizeof(double), compare_doubles);
-    	// print_matrix(1, M, accuracies);
+
 		for (int i = 0; i < n_eigen; i++) {
 			fprintf(fp, "%d,%d,%e,A\n", n, i, accuracies_sorted[i]);
 		}
