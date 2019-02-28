@@ -224,7 +224,7 @@
 
 
 	\subsection{Étude de performances pratique}
-		Après avoir exprimé la complexité théorique de notre algorithme, on étudie ses performances en pratique. On peut tout d'abord voir sur la figure \ref{fig:tvsiter} que la complexité est bien linéaire en fonction du nombre d'itérations comme prédit par la théorie.
+		Après avoir exprimé la complexité théorique de notre algorithme, on étudie ses performances en pratique. Dans toute la suite de notre anayse et sauf mention contraire, on effectue nos tests avec la matrice \textit{gemat12} que l'on peut trouver sur Matrix Market\footnote{https://math.nist.gov/MatrixMarket/data/Harwell-Boeing/gemat/gemat12.html}. Cette matrice est creuse et de taille $4929\times 4929$. On peut tout d'abord voir sur la figure \ref{fig:tvsiter} que la complexité est bien linéaire en fonction du nombre d'itérations comme prédit par la théorie.
 		\begin{figure}
 			\centering
 			\includegraphics[width = 0.7\linewidth]{plots/tvsiter.pdf}
@@ -238,7 +238,7 @@
 			\caption{Evolution du temps de calcul en fonction de la taille du sous-espace de Krylov $m$. \label{fig:tvsm}}
 		\end{figure}
 
-		Finalement, on peut observer sur la figure \ref{fig:tvsM}, qui est en échelle logarithmique, que la complexité suit bien une loi de puissance d'ordre environ 2 en fonction de la taille de la matrice comme prédit par la théorie.
+		Finalement, on peut observer sur la figure \ref{fig:tvsM}, qui est en échelle logarithmique, que la complexité suit bien une loi de puissance d'ordre environ 2 en fonction de la taille de la matrice comme prédit par la théorie. Pour réaliser cette figure, nous avons utilisé des matrices de tests possédant la même structure et ayant pour seule différence la taille.
 		\begin{figure}
 			\centering
 			\includegraphics[width = 0.7\linewidth]{plots/tvsM.pdf}
@@ -249,7 +249,7 @@
 	\subsection{\'Etude de convergence}
 		Après avoir étudié les performances de notre implémentation, nous nous intéressons désormais à l'étude de la précision. Pour ce faire, nous étudions notamment la vitesse de convergence de l'algorithme en fonction des différents paaramètres utilisés.
 
-		On peut tout d'abord observer sur les figures \ref{fig:Nvse-m_p6}, \ref{fig:Nvse-m_p8} et \ref{fig:Nvse-m_p10} l'impact du choix de la taille du sous espace de Krylov. Nous nous sommes limités à 10000 itérations, une telle valeur signifie donc unenon convergence sur les graphiques. On constate que, de manière générale, une taille de sous-espace de Krylov $m$ plus grande permet une meilleure convergence générale d'un plus grand nombre de vecteurs propres. On peut voir sur la figure \ref{fig:Nvse-m_p10} que seule une taille $m \geq 8$ permet de faire converger 4 vecteurs propres avec une précision $p=\SI{e-10}{}$, pour les valeurs inférieures de $m$ moins de vecteurs propres convergent. On peut néanmoins remarquer sur la figure \ref{fig:Nvse-m_p8} qu'un $m$ inférieur peut permettre une convergence plus rapide. Cela nous montre bien qu'il y a un compromis à trouver pour la valeur de $m$ qui doit être assez grande pur permettre à assez de vecteurs propres de converger mais pas trop grande au risque deperdre en vitesse de convergence dans certains cas.
+		On peut tout d'abord observer sur les figures \ref{fig:Nvse-m_p6}, \ref{fig:Nvse-m_p8} et \ref{fig:Nvse-m_p10} l'impact du choix de la taille du sous espace de Krylov. Nous nous sommes limités à 10000 itérations, une telle valeur signifie donc une non convergence sur les graphiques. On constate que, de manière générale, une taille de sous-espace de Krylov $m$ plus grande permet une meilleure convergence générale d'un plus grand nombre de vecteurs propres. On peut voir sur la figure \ref{fig:Nvse-m_p10} que seule une taille $m \geq 8$ permet de faire converger 4 vecteurs propres avec une précision $p=\SI{e-10}{}$, pour les valeurs inférieures de $m$ moins de vecteurs propres convergent. On peut néanmoins remarquer sur la figure \ref{fig:Nvse-m_p8} qu'un $m$ inférieur peut permettre une convergence plus rapide. Cela nous montre bien qu'il y a un compromis à trouver pour la valeur de $m$ qui doit être assez grande pour permettre à assez de vecteurs propres de converger mais pas trop grande au risque de perdre en vitesse de convergence dans certains cas.
 
 		\begin{figure}
 			\centering
