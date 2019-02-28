@@ -61,7 +61,7 @@
 			\begin{itemize}
 				\item Extraction de la vp dominante d'une matrice $A$.
 				\item Multiplication répétée d'un vecteur initial par $A$.
-				\item Convergence en $\left(\frac{\lambda_1}{\lambda_2}\right)^N$
+				\item Convergence en $\left(\frac{\lambda_2}{\lambda_1}\right)^N$
 			\end{itemize}
 		\end{block}
 
@@ -69,7 +69,7 @@
 			\begin{itemize}
 				\item Espace invariant par $A$ de dim $k > 1$.
 				\item Multiplication répétée du sous-espace par $A$.
-				\item Orthonormalisationdu sous-espace.
+				\item Orthonormalisation du sous-espace.
 			\end{itemize}
 		\end{block}
 	\end{frame}
@@ -211,7 +211,7 @@
 			\begin{block}{Parallélisation OpenMP}
 				\begin{itemize}
 					\item On parallélise les produits matriciels dans l'espace d'origine
-					\item Pragmas devan le boucles parallélisable
+					\item Pragmas devant les boucles parallélisables
 					\item Pas de pénalité de communication
 					\item Performance : $C \rightarrow \frac{C}{N_\text{cores}}$
 				\end{itemize}
@@ -245,7 +245,7 @@
 			On pose $N$ le nombre de processus
 			\begin{block}{Temps de calcul processeur}
 				Chaque c\oe{}ur calcul $\frac{1}{N}$ de la matrice C
-				\center{Accélération \times N}
+				\center{Accélération $\times$ N}
 			\end{block}
 			\begin{block}{Communication pour un calcul $C = AB$}
 				\begin{itemize}
@@ -276,8 +276,8 @@
 	\begin{frame}{Conclusion}
 		\begin{block}{Algorithme}
 			\begin{itemize}
-				\item Compexité pratique proche de la théorie.
-				\item Imporance du choix de $m$ en fonction des autres paramètres.
+				\item Complexité pratique proche de la théorie.
+				\item Importance du choix de $m$ en fonction des autres paramètres.
 				\item Meilleure convergence et efficacité avec locking.
 			\end{itemize}
 		\end{block}
