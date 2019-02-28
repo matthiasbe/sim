@@ -13,6 +13,20 @@
 #include <float.h>
 
 #define CSV_FILENAME "output.csv"
+#define OUTPUT_VP "vp.res"
+
+void output_vp(int N, int M, double q[N][M]){
+	FILE* f = fopen(OUTPUT_VP, "w+");
+	for (int i = 0; i < N; ++i)
+	{
+		for (int j = 0; j < M; ++j)
+		{
+			fprintf(f, "%e\t", q[i][j]);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
 
 void swap_columns(int i, int j, int N, int M, double mat[N][M]){
 	if(i != j){
@@ -464,6 +478,7 @@ void mis(int N, int M, double A[N][N], double q[N][M], int iter, int precision, 
 		if (iter < 20 || n % (iter / 20) == 0)
 			printf("%2d%% (%d iterations) in %.3f seconds\n", (n*100)/iter, n, duration);
     }
+    output_vp(N, M, q);
 }
 
 
