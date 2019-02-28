@@ -312,7 +312,7 @@
 		En outre, en plus de diminuer le nombre d'itérations, la méthode de locking permet de diminuer la complexité à chaque fois qu'un vecteur est verouillé car on diminue alors la taille du sous-espace de Krylov et ainsi la complexité qui dépend linéairement de $m$.
 
 	\subsection{Conclusions}
-		Nous avons pu correctement implémenter l'algorithme des itérations simultanées en séquentiel et retrouver, grâce à nos mesures, la omplexité théorique prédite. Nous avons pu mesurer l'impact des différents paramètres sur la vitesse de convergence de l'algorihme et notamment celle de la taille du sous-espace de Krylov $m$ qui doit être choisi soigneusement. Nous aons par la suite amélioré notre premier algorithme en implémentant le locking ce qui permet d'obtenir une convergence plus rapide et avec une complexité moindre.
+		Nous avons pu correctement implémenter l'algorithme des itérations simultanées en séquentiel et retrouver, grâce à nos mesures, la complexité théorique prédite. Nous avons pu mesurer l'impact des différents paramètres sur la vitesse de convergence de l'algorihme et notamment celle de la taille du sous-espace de Krylov $m$ qui doit être choisi soigneusement. Nous avons par la suite amélioré notre premier algorithme en implémentant le locking ce qui permet d'obtenir une convergence plus rapide et avec une complexité moindre.
 
 \section{Cas parallèle}
 	\subsection{Approches utilisées}
@@ -425,7 +425,7 @@
 
 			\bigskip
 
-			On observe que lorsqu'on utilise plusieurs n\oe{}uds le temps d'exécution augmente de manière importante. On peut penser qu'une telle baisse de performances en multi-n\oe{}uds provient de l'ajout de communications pour l'échange des matrices. Un piste pour rendre cette algorithme MPI réellement efficace serait d'optimiser les échanges de matrices.
+			On observe que lorsque l'on utilise plusieurs n\oe{}uds le temps d'exécution augmente de manière importante. On peut penser qu'une telle baisse de performances en multi-n\oe{}uds provient de l'ajout de communications pour l'échange des matrices. Un piste pour rendre cette algorithme MPI réellement efficace serait d'optimiser les échanges de matrices.
 
 	\subsection{Conclusions}
 
