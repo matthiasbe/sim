@@ -393,6 +393,8 @@
 		\subsubsection{Approche multi-n\oe{}uds}
 
 			Le tableau de la figure \ref{res-mpi} donne les résultats de l'exécution de programme avec l'utilisation de plusieurs n\oe{}uds. Deux matrices carrées différentes ont été utilisée : la première de taille 1473 et la deuxième de taille 4929. Toutes deux proviennent de la base Matrice Market.
+
+			\medskip
 		
 			Les grandeurs renseignées sont les suivantes :
 			\begin{itemize}
@@ -419,9 +421,15 @@
 				\label{res-mpi}
 			\end{figure}
 
-			
+			\bigskip
+
+			On observe que lorsqu'on utilise plusieurs n\oe{}uds le temps d'exécution augmente de manière importante. On peut penser qu'une telle baisse de performances en multi-n\oe{}uds provient de l'ajout de communications pour l'échange des matrices. Un piste pour rendre cette algorithme MPI réellement efficace serait d'optimiser les échanges de matrices.
 
 	\subsection{Conclusions}
+
+	La parallélisation via OpenMP donne de très bons résultats sans avoir à modifier le code. Cela vient notamment de la présence d'une mémoire partagée. Néanmoins les n\oe{}uds de cluster on un nombre de c\oe{}urs physiquement limité, ce qui conduit à implémenter des solutions MPI pour augmenter encore les performances.
+
+	A l'inverse la parallélisation MPI demande des modifications structurelles du code et ne donne pas de résultats immédiats notamment à cause du grand surcoût des communications de grandes matrices.
 
 \section{Conclusion générale}
 
