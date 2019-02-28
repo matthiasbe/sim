@@ -42,4 +42,9 @@ All data is in a single table with the following column :
 * value : Value of the data
 * type : type of data. `vr` means real part of eigenvalue, `vi` being the imaginary part. `t` stand for time in seconds.
 
+## Test matrices
+
+You can use test matrices provided in `test/matrices/` folder. Most of them were download from Matrix Market. The current state of the program only accepts matrices in .mtx format.
+
+Corresponding eigenvectors for a matrix are stored in the associated `.eve` file. Those eigenvectors were computed using python's Numpy library (see test/compute_eve.py).
 
