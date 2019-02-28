@@ -78,12 +78,12 @@
 		\begin{itemize}
 			\item $M$ : taille du sous-espace de Krylov
 			\item $k$ : nombre de vecteurs propres demandé
-			\item $p$ : précision demandé
+			\item $p$ : précision demandée
 			\item $A$ : matrice de taille $N\times N$ donnée en entrée
 			\item $N_{iter}$ : nombre d'itérations
 		\end{itemize}
 		\vspace{1cm}
-		L'algorithme \ref{alg:global} détaille l'implémentation globale de la méthode des itérations simultanées.
+		L'algorithme \ref{alg:global} décris l'implémentation globale de la méthode des itérations simultanées.
 
 		\begin{algorithm}
 			\caption{Algorithme général}
@@ -102,12 +102,11 @@
 				\end{algorithmic}
 		\end{algorithm}
 
-		L'algorithme implémenté est l'algorithme \ref{alg:gm}.
-		Dans les paragraphes suivant sont détaillés chaque étape de l'algorithme.
+		Dans les paragraphes suivants sont détaillées chaque étape de cet algorithme.
 
 		\subsubsection{Procédé de Gram-Schmidt}
 
-		On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormalisé la matrice Q. L'orthogonalisation revient à ajouter chaque vecteur de la matrice $Z$ dans une vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme. L'implémentation est présenté dans l'algorithme \ref{alg:gm}.
+		On utilise une décomposition QR avec le procédé de Gram-Schmidt pour orthonormaliser la matrice Q. L'orthogonalisation revient à ajouter chaque vecteur de la matrice $Z$ dans une vecteur temporaire tout en lui soustrayant son projeté sur chaque vecteur déjà ajouté. On normalise ensuite en divisant chaque vecteur par sa norme. L'implémentation est présenté dans l'algorithme \ref{alg:gm}.
 
 			\begin{algorithm}
 				\begin{algorithmic}[1]
@@ -137,7 +136,7 @@
 			p_i = \norm{Aq-\lambda q}
 			$$
 
-			On se propose aussi de tester une métrique qui permet d'étudier la correction d'un vecteur propre va sa colinéarité avec son image par $A$. Plus sa valeur est proche de 1 plus le vecteur trouvé est une bonne estimation d'un vecteur propre de $A$.
+			On se propose aussi de tester une métrique qui permet d'étudier la correction d'un vecteur propre via sa colinéarité avec son image par $A$. Plus sa valeur est proche de 1 plus le vecteur trouvé est une bonne estimation d'un vecteur propre de $A$.
 
 			$$
 			\overset{\sim}{p_i} = \frac{<Av, v>}{\norm{Av}\norm{v}}
@@ -174,14 +173,17 @@
 
 			\paragraph{Procédé de Gram-Schmidt :} L'algorithme de Gram-Schmidt se décompose en deux étape indépendantes :
 			\begin{itemize}
-				\item l'orthogonalisation consiste en un produit scalaire entre de vecteur de taille N dans une double boucle couvrant l'intervalle $\{(i,j) | i \in [0,M-1] et j \in [O,i]\}$. Le cardinal de cet intervalle est $(M)log(M)$, ce qui donne une complexité $O(NMlog(M))$ pour l'orthogonalisation
+				\item l'orthogonalisation consiste en un produit scalaire entre deux vecteurs de taille N dans une double boucle couvrant l'intervalle $\{(i,j) | i \in [0,M-1] \text{ et } j\in[O,i]\}$. Le cardinal de cet intervalle est $Mlog(M)$, ce qui donne une complexité $O(NMlog(M))$ pour l'orthogonalisation
 				\item la normalisation consiste en $M-1$ produits scalaires de vecteurs de taille N, ce qui donne une complexité $O(NM)$ pour la normalisation.
 			\end{itemize}		
+
+			\medskip
+
 			La complexité pour le procédé de Gram-Schmidt est donc
 			
 			$$C^{GM} = O(NMlog(M))$$
 
-			\paragraph{Projection :} Il s'agit d'un produit entre la matrice $Z^t \in \mathbb{R}^{M\times N}$ et la matrice $A \in \mathbb{R}^{N\times N}$ puis un produit entre la matrice résultante et la matrice $Z$. Ces produits matriciels on tous les deux la complexité $O(MN^2)$. Ce qui donne une complexité pour l'étape de projection
+			\paragraph{Projection :} Il s'agit d'un produit entre la matrice $Z^t \in \mathbb{R}^{M\times N}$ et la matrice $A \in \mathbb{R}^{N\times N}$ suivi d'un produit entre la matrice résultante et la matrice $Z$. Ces produits matriciels on tous les deux la complexité $O(MN^2)$. Ce qui donne la complexité suivante pour l'étape de projection
 			
 			$$C^{Proj} = C^{mm} = O(N^2M)$$
 
@@ -191,12 +193,12 @@
 
 			\paragraph{Précision :} La précision se calcule pour les $M$ vecteurs de la matrice $Q$. Pour chaque vecteur on calcule $\norm{Aq-\lambda q}$.
 			\begin{itemize}
-				\item Le produit $Aq$ se calcule avec un complexité $O(NM)$
+				\item Le produit $Aq$ se calcule avec un complexité $O(NM^2)$
 				\item Le produit $\lambda q$ se calcule avec une complexité $O(N)$
 				\item La norme se calcule avec une complexité $O(N)$
 			\end{itemize}
-			
-			Ce qui donne une complexité totale de
+			\medskip
+			Ce qui donne une complexité totale
 			$$C^{preci} = O(NM^2)$$
 
 			\paragraph{Sélection :} La sélection des k vecteurs propres de plus grande précision est de l'ordre de grandeur de $M$, ce qui est négligeable devant les autres complexités qui dépendent de $N$.
@@ -222,7 +224,7 @@
 
 
 	\subsection{Étude de performances pratique}
-		Après avoir exprimé la complexité théorique de notre algorithme, on étudie ses performances en pratique. On peut tout d'abord voir sur la figure \ref{fig:tvsiter} que la complexité est bien linéaire en fonction du nombre d'itération comme prédit par la théorie.
+		Après avoir exprimé la complexité théorique de notre algorithme, on étudie ses performances en pratique. On peut tout d'abord voir sur la figure \ref{fig:tvsiter} que la complexité est bien linéaire en fonction du nombre d'itérations comme prédit par la théorie.
 		\begin{figure}
 			\centering
 			\includegraphics[width = 0.7\linewidth]{plots/tvsiter.pdf}
